@@ -1,0 +1,6 @@
+{
+  "name": "Alegria Renueva",
+  "description": "Aplicación oficial de información y registro para el retiro espiritual Renueva 2026 en Wisemans Ferry.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
