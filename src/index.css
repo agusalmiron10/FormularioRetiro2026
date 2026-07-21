@@ -1,23 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #516138;
-  --color-secondary: #97480a;
+  --color-primary: #5D2304;
+  --color-primary-container: #7A3510;
+  --color-on-primary-container: #FCF9F2;
+  --color-secondary: #F27E35;
   --color-tertiary: #605b54;
-  --color-cream-base: #FAF9F6;
-  --color-surface-custom: #f4fbf5;
-  --color-surface-container-low: #eef5ef;
-  --color-surface-container: #e9f0e9;
-  --color-surface-container-high: #e3eae4;
-  --color-surface-container-highest: #dde4de;
-  --color-on-surface: #161d1a;
-  --color-on-surface-variant: #45483e;
-  --color-forest-deep: #1A2421;
-  --color-terracotta-soft: #E2976D;
-  --color-pricing-early: #CC7A00;
-  --color-pricing-regular: #E6B800;
-  --color-status-success: #4F772D;
-  --color-sage-light: #B4BC9A;
+  --color-cream-base: #FCF9F2;
+  --color-surface-custom: #FFF9F0;
+  --color-surface-container-low: #FDF5ED;
+  --color-surface-container: #F8EDE0;
+  --color-surface-container-high: #F2E5D5;
+  --color-surface-container-highest: #ECDCCA;
+  --color-on-surface: #2D1A0E;
+  --color-on-surface-variant: #5C4A3A;
+  --color-forest-deep: #3A2410;
+  --color-terracotta-soft: #F27E35;
+  --color-pricing-early: #F27E35;
+  --color-pricing-regular: #FFC303;
+  --color-status-success: #96A850;
+  --color-sage-light: #96A850;
+  --color-accent-gold: #FFC303;
+  --color-outline-variant: #D4C4B0;
 
   --font-display: "EB Garamond", serif;
   --font-sans: "Hanken Grotesk", sans-serif;
@@ -39,7 +43,7 @@
 .soft-input {
   width: 100%;
   background-color: var(--color-surface-container-low);
-  border-bottom: 2px solid var(--color-outline-variant, #c5c8bb);
+  border-bottom: 2px solid var(--color-outline-variant, #D4C4B0);
   padding: 0.75rem 0.5rem;
   font-size: 1rem;
   line-height: 1.5rem;

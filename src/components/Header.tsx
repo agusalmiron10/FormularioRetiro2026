@@ -13,7 +13,7 @@ interface HeaderProps {
 
 export default function Header({ currentStep, onNavigate }: HeaderProps) {
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-[#FAF9F6] border-b border-primary/5 shadow-sm shadow-primary/5 h-16 flex items-center justify-between px-6 md:px-16">
+    <header className="fixed top-0 left-0 w-full z-50 bg-[#FCF9F2] border-b border-primary/5 shadow-sm shadow-primary/5 h-16 flex items-center justify-between px-6 md:px-16">
       {/* Brand Logo */}
       <button 
         onClick={() => onNavigate('landing')} 

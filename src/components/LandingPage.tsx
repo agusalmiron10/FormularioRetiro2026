@@ -103,7 +103,7 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
       </section>
 
       {/* Details Grid / Event Info */}
-      <section id="detalles" className="py-24 bg-[#FAF9F6] px-6 md:px-16 scroll-mt-12">
+      <section id="detalles" className="py-24 bg-[#FCF9F2] px-6 md:px-16 scroll-mt-12">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
@@ -177,7 +177,7 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-[#e9f0e9] relative overflow-hidden px-6 md:px-16">
+      <section className="py-24 bg-[#F8EDE0] relative overflow-hidden px-6 md:px-16">
         {/* Soft Background blur accents */}
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-sage-light/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-terracotta-soft/10 rounded-full blur-3xl pointer-events-none"></div>

@@ -25,7 +25,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="w-full bg-[#e9f0e9] border-t border-primary/10 py-12 px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-6 mt-auto">
+    <footer className="w-full bg-[#F8EDE0] border-t border-primary/10 py-12 px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-6 mt-auto">
       <div className="flex flex-col items-center md:items-start text-center md:text-left">
         <h4 className="font-display text-xl font-medium text-primary">Alegría Retreats</h4>
         <p className="font-sans text-xs text-on-surface-variant mt-1.5">
@@ -79,7 +79,7 @@ export default function Footer() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#FAF9F6] border border-primary/20 rounded-2xl max-w-lg w-full p-6 relative shadow-xl"
+              className="bg-[#FCF9F2] border border-primary/20 rounded-2xl max-w-lg w-full p-6 relative shadow-xl"
             >
               <button 
                 onClick={() => setActiveModal(null)}

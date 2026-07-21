@@ -67,7 +67,7 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
                 onChange={() => onChange({ pricingTier: 'early' })}
                 className="sr-only peer" 
               />
-              <div className="p-6 border-2 border-outline-variant/40 rounded-2xl transition-all hover:bg-surface-container-low peer-checked:border-primary peer-checked:bg-[#f4fbf5] h-full flex flex-col justify-between">
+              <div className="p-6 border-2 border-outline-variant/40 rounded-2xl transition-all hover:bg-surface-container-low peer-checked:border-primary peer-checked:bg-[#FFF9F0] h-full flex flex-col justify-between">
                 <div className="flex justify-between items-start mb-4">
                   <span className="bg-pricing-early/10 text-pricing-early text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                     Recomendado
@@ -95,7 +95,7 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
                 onChange={() => onChange({ pricingTier: 'regular' })}
                 className="sr-only peer" 
               />
-              <div className="p-6 border-2 border-outline-variant/40 rounded-2xl transition-all hover:bg-surface-container-low peer-checked:border-primary peer-checked:bg-[#f4fbf5] h-full flex flex-col justify-between">
+              <div className="p-6 border-2 border-outline-variant/40 rounded-2xl transition-all hover:bg-surface-container-low peer-checked:border-primary peer-checked:bg-[#FFF9F0] h-full flex flex-col justify-between">
                 <div className="flex justify-between items-start mb-4">
                   <span className="bg-pricing-regular/10 text-pricing-regular text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                     Estándar
@@ -165,7 +165,7 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
         </section>
 
         {/* Bank Details (Earth-toned Box) */}
-        <section className="bg-[#e9e1d8] p-6 md:p-8 rounded-2xl border-l-4 border-terracotta-soft text-on-surface">
+        <section className="bg-[#F2E5D5] p-6 md:p-8 rounded-2xl border-l-4 border-secondary text-on-surface">
           <div className="flex items-start gap-4">
             <Landmark className="w-6 h-6 text-secondary mt-1 flex-shrink-0" />
             <div className="w-full">
@@ -196,7 +196,7 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
         </section>
 
         {/* Cancellation Policy */}
-        <section className="p-6 rounded-2xl border border-outline-variant/40 bg-[#FAF9F6]/50">
+        <section className="p-6 rounded-2xl border border-outline-variant/40 bg-[#FCF9F2]/50">
           <div className="flex gap-3">
             <Info className="w-5 h-5 text-terracotta-soft mt-0.5 flex-shrink-0" />
             <div>

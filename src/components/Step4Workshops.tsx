@@ -92,7 +92,7 @@ export default function Step4Workshops({ data, onChange, onNext, onBack }: Step4
                     onChange={() => onChange({ roomType: 'shared' })}
                     className="sr-only peer" 
                   />
-                  <div className="p-5 border-2 border-outline-variant/40 rounded-xl transition-all hover:bg-surface-container-low peer-checked:border-primary peer-checked:bg-[#f4fbf5] h-full flex flex-col justify-between">
+                  <div className="p-5 border-2 border-outline-variant/40 rounded-xl transition-all hover:bg-surface-container-low peer-checked:border-primary peer-checked:bg-[#FFF9F0] h-full flex flex-col justify-between">
                     <div>
                       <h3 className="font-sans text-sm font-bold text-primary">Habitación Doble</h3>
                       <p className="font-sans text-xs text-on-surface-variant mt-1">
@@ -114,7 +114,7 @@ export default function Step4Workshops({ data, onChange, onNext, onBack }: Step4
                     onChange={() => onChange({ roomType: 'private' })}
                     className="sr-only peer" 
                   />
-                  <div className="p-5 border-2 border-outline-variant/40 rounded-xl transition-all hover:bg-surface-container-low peer-checked:border-primary peer-checked:bg-[#f4fbf5] h-full flex flex-col justify-between">
+                  <div className="p-5 border-2 border-outline-variant/40 rounded-xl transition-all hover:bg-surface-container-low peer-checked:border-primary peer-checked:bg-[#FFF9F0] h-full flex flex-col justify-between">
                     <div>
                       <h3 className="font-sans text-sm font-bold text-primary">Habitación Individual</h3>
                       <p className="font-sans text-xs text-on-surface-variant mt-1">

@@ -95,7 +95,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans text-on-surface bg-[#FAF9F6] selection:bg-sage-light/30">
+    <div className="min-h-screen flex flex-col font-sans text-on-surface bg-[#FCF9F2] selection:bg-sage-light/30">
       {/* Persistent Header */}
       <Header currentStep={step} onNavigate={setStep} />
 
@@ -207,7 +207,7 @@ export default function App() {
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 p-4 rounded-xl bg-forest-deep text-white shadow-xl flex items-center gap-3"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 p-4 rounded-xl bg-primary text-white shadow-xl flex items-center gap-3"
           >
             <CheckCircle className="w-5 h-5 text-status-success shrink-0" />
             <span className="font-sans text-xs font-semibold tracking-wide">{toastMessage}</span>

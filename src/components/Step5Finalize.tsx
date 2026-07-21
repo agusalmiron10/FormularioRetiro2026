@@ -112,7 +112,7 @@ export default function Step5Finalize({ data, onBack, onSubmit }: Step5Props) {
               Términos y Condiciones
             </h3>
             
-            <div className="max-h-40 overflow-y-auto p-4 bg-[#FAF9F6] border border-outline-variant/20 rounded-xl mb-6 text-xs text-on-surface-variant leading-relaxed space-y-3">
+            <div className="max-h-40 overflow-y-auto p-4 bg-[#FCF9F2] border border-outline-variant/20 rounded-xl mb-6 text-xs text-on-surface-variant leading-relaxed space-y-3">
               <p>
                 Al registrarse para el retiro "Renueva 2026", usted acepta que Alegría Retreats no se hace responsable de pérdidas personales o lesiones físicas durante el evento en Wisemans Ferry.
               </p>
