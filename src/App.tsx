@@ -12,7 +12,7 @@ import LandingPage from './components/LandingPage';
 import Step1PersonalInfo from './components/Step1PersonalInfo';
 import Step2Preferences from './components/Step2Preferences';
 import Step3Payment from './components/Step3Payment';
-import Step4Workshops from './components/Step4Workshops';
+import Step4Experience from './components/Step4Experience';
 import Step5Finalize from './components/Step5Finalize';
 import SuccessScreen from './components/SuccessScreen';
 import { RegistrationData, RegistrationStep } from './types';
@@ -48,10 +48,17 @@ export default function App() {
   };
 
   const handleSaveDraft = () => {
-    localStorage.setItem('renueva_2026_draft', JSON.stringify(formData));
-    setDraftSaved(true);
-    showToast('¡Progreso de inscripción guardado como borrador!');
-    setHasDraft(true);
+    // El comprobante se omite: un archivo en base64 desborda la cuota de localStorage.
+    const { paymentProof: _omitted, ...draft } = formData;
+    try {
+      localStorage.setItem('renueva_2026_draft', JSON.stringify(draft));
+      setDraftSaved(true);
+      setHasDraft(true);
+      showToast('¡Progreso guardado! El comprobante deberás adjuntarlo de nuevo.');
+    } catch (err) {
+      console.error('Error saving draft', err);
+      showToast('No pudimos guardar el borrador en este navegador.');
+    }
   };
 
   const handleRestoreDraft = () => {
@@ -59,7 +66,7 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setFormData(parsed);
+        setFormData({ ...INITIAL_REGISTRATION_DATA, ...parsed, paymentProof: null });
         setStep('step1');
         showToast('¡Borrador restaurado con éxito!');
         setHasDraft(false);
@@ -172,21 +179,22 @@ export default function App() {
           )}
 
           {step === 'step4' && (
-            <Step4Workshops 
+            <Step4Experience
               key="step4"
-              data={formData} 
-              onChange={handleUpdateData} 
-              onNext={() => setStep('step5')} 
-              onBack={() => setStep('step3')} 
+              data={formData}
+              onChange={handleUpdateData}
+              onNext={() => setStep('step5')}
+              onBack={() => setStep('step3')}
             />
           )}
 
           {step === 'step5' && (
-            <Step5Finalize 
+            <Step5Finalize
               key="step5"
-              data={formData} 
-              onBack={() => setStep('step4')} 
-              onSubmit={handleRegistrationSubmit} 
+              data={formData}
+              onChange={handleUpdateData}
+              onBack={() => setStep('step4')}
+              onSubmit={handleRegistrationSubmit}
             />
           )}
 

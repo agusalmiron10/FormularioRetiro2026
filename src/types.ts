@@ -3,8 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export interface PaymentProof {
+  name: string;
+  type: string;
+  size: number;
+  dataUrl: string;
+}
+
 export interface RegistrationData {
-  // Step 1: Personal Info
+  // Paso 1: Información personal
   fullName: string;
   phone: string;
   email: string;
@@ -14,25 +21,34 @@ export interface RegistrationData {
   emergencyName: string;
   emergencyPhone: string;
 
-  // Step 2: Preferences & Health
+  // Paso 2: Preferencias
   language: 'es' | 'en' | 'both';
   travelOrigin: string;
-  dietaryRequirements: {
-    vegetariana: boolean;
-    vegana: boolean;
-    celiaca: boolean;
-    sinLacteos: boolean;
-    sinFrutosSecos: boolean;
-  };
+  travelOriginOther: string;
+  dietary: string[];
   otherDietary: string;
 
-  // Step 3: Pricing & Payment
-  pricingTier: 'early' | 'regular';
-  paymentType: 'full' | 'installments' | 'donation';
+  // Paso 3: Registro y pago
+  sponsorship: string;
+  paymentOption: string;
+  paymentProof: PaymentProof | null;
 
-  // Step 4: Room & Workshops
-  roomType: 'shared' | 'private';
-  selectedWorkshops: string[]; // maximum 2
+  // Paso 4: Tu experiencia
+  medicalNotes: string;
+  roommatePreference: string;
+  transport: string;
+  prayerSession: string;
+  prayerOther: string;
+  expectations: string[];
+  expectationsOther: string;
+  referralSource: string;
+  referralOther: string;
+
+  // Paso 5: Confirmación
+  confirmReservation: boolean;
+  confirmCancellation: boolean;
+  confirmTerms: boolean;
+  comments: string;
 }
 
 export type RegistrationStep = 'landing' | 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'success';

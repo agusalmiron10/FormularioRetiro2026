@@ -116,7 +116,7 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
                 Un santuario de paz en Wisemans Retreat
               </h3>
               <p className="font-sans text-sm md:text-base text-on-surface-variant leading-relaxed">
-                Ubicado a orillas del majestuoso río Hawkesbury, Wisemans Retreat ofrece el escenario perfecto para desconectarse del ruido cotidiano. Durante tres días, nos sumergiremos en talleres creativos, sesiones de oración contemplativa y caminatas restauradoras bajo el dosel del bosque.
+                Ubicado a orillas del majestuoso río Hawkesbury, Wisemans Retreat ofrece el escenario perfecto para desconectarse del ruido cotidiano. Durante tres días, nos sumergiremos en tiempos de enseñanza, sesiones de oración y ministración, y caminatas restauradoras bajo el dosel del bosque.
               </p>
 
               <div className="space-y-4 pt-4 border-t border-primary/10">

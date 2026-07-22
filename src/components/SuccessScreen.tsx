@@ -35,7 +35,7 @@ export default function SuccessScreen({ fullName, onReset }: SuccessScreenProps)
 
       {/* Description */}
       <p className="font-sans text-sm md:text-base text-on-surface-variant max-w-lg mx-auto mb-10 leading-relaxed">
-        ¡Gracias por registrarte, <strong>{firstName}</strong>! Tu lugar en el retiro <strong>Renueva 2026</strong> ha sido reservado temporalmente. Te hemos enviado un correo de confirmación con los datos para realizar la transferencia bancaria.
+        ¡Gracias por registrarte, <strong>{firstName}</strong>! Recibimos tu inscripción y tu comprobante de pago. Nuestro equipo verificará la transferencia y te enviaremos un correo confirmando tu lugar en <strong>Renueva 2026</strong>. Nos vemos del 11 al 13 de septiembre en Wisemans Retreat.
       </p>
 
       {/* Action cards: Instagram & WhatsApp */}

@@ -3,9 +3,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
-import { Landmark, CreditCard, Info, ArrowLeft, ArrowRight } from 'lucide-react';
-import { RegistrationData } from '../types';
+import React, { useRef, useState } from 'react';
+import {
+  Landmark,
+  Info,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Copy,
+  UploadCloud,
+  FileText,
+  Trash2,
+  ShieldAlert,
+  Heart
+} from 'lucide-react';
+import { RegistrationData, PaymentProof } from '../types';
+import {
+  BANK_DETAILS,
+  INCLUSIONS,
+  PAYMENT_OPTIONS,
+  PROOF_RULES,
+  SPONSORSHIP_OPTIONS
+} from '../data';
+import { Question, RadioOption, StepProgress } from './FormControls';
 import { motion } from 'motion/react';
 
 interface Step3Props {
@@ -16,178 +36,249 @@ interface Step3Props {
   key?: string;
 }
 
+const GROUP_LABELS: Record<string, string> = {
+  anticipado: 'Precio anticipado — $450 AUD (hasta el 31 de julio de 2026)',
+  regular: 'Precio regular — $480 AUD (desde el 1 de agosto de 2026)',
+  voluntaria: 'Voluntaria',
+  donacion: 'Donación'
+};
+
 export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Props) {
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [copied, setCopied] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const copyToClipboard = async (label: string, value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(label);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      /* El portapapeles puede estar bloqueado; el dato sigue visible en pantalla. */
+    }
+  };
+
+  const readFile = (file: File) => {
+    if (!PROOF_RULES.acceptedTypes.includes(file.type)) {
+      setErrors((prev) => ({
+        ...prev,
+        paymentProof: 'Formato no válido. Subí una imagen (JPG, PNG, WEBP) o un PDF.'
+      }));
+      return;
+    }
+
+    if (file.size > PROOF_RULES.maxSizeMB * 1024 * 1024) {
+      setErrors((prev) => ({
+        ...prev,
+        paymentProof: `El archivo supera los ${PROOF_RULES.maxSizeMB} MB. Probá con una captura más liviana.`
+      }));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const proof: PaymentProof = {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        dataUrl: reader.result as string
+      };
+      onChange({ paymentProof: proof });
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.paymentProof;
+        return next;
+      });
+    };
+    reader.onerror = () => {
+      setErrors((prev) => ({
+        ...prev,
+        paymentProof: 'No pudimos leer el archivo. Intentá nuevamente con otra captura.'
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) readFile(file);
+    e.target.value = '';
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) readFile(file);
+  };
+
+  const removeProof = () => {
+    onChange({ paymentProof: null });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const next: { [key: string]: string } = {};
+
+    if (!data.sponsorship) {
+      next.sponsorship = 'Seleccioná una opción para continuar.';
+    }
+
+    if (!data.paymentOption) {
+      next.paymentOption = 'Indicá qué pago estás realizando.';
+    }
+
+    if (!data.paymentProof) {
+      next.paymentProof =
+        'El comprobante de pago es obligatorio. Sin la captura de la transferencia no podemos confirmar tu lugar.';
+    }
+
+    setErrors(next);
+
+    if (Object.keys(next).length > 0) {
+      const firstError = document.querySelector('[data-error="true"]');
+      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     onNext();
   };
 
+  const selectedOption = PAYMENT_OPTIONS.find((o) => o.id === data.paymentOption);
+  const isImageProof = data.paymentProof?.type.startsWith('image/');
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
-      className="max-w-[800px] mx-auto text-left"
+      className="max-w-3xl mx-auto text-left"
     >
-      {/* Progress Indicator */}
-      <div className="mb-10">
-        <div className="flex justify-between items-center mb-2">
-          <span className="font-sans text-xs font-bold text-primary uppercase tracking-widest">Paso 3 de 5: Pago</span>
-          <span className="font-sans text-xs font-semibold text-tertiary">60% completado</span>
-        </div>
-        <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-          <div className="bg-primary h-full rounded-full transition-all duration-700 ease-out w-3/5"></div>
-        </div>
-      </div>
+      <StepProgress step={3} label="Registro y Pago" />
 
-      {/* Page Header */}
-      <div className="mb-10">
+      <div className="mb-8">
         <h1 className="font-display text-4xl text-primary mb-2">Detalles de Registro y Pago</h1>
         <p className="font-sans text-sm text-on-surface-variant">
-          Elige tu modalidad de participación y completa tu registro para asegurar tu lugar en Wisemans Ferry.
+          Tu lugar queda reservado una vez recibido el pago. Completá los datos y adjuntá el
+          comprobante de tu transferencia.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        
-        {/* Pricing Options */}
-        <section>
-          <h2 className="font-sans text-sm font-bold text-secondary mb-4 uppercase tracking-wider flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-secondary" />
-            Opciones de Precio
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            {/* Early Bird Card */}
-            <label className="relative cursor-pointer block">
-              <input 
-                type="radio" 
-                name="pricing" 
-                checked={data.pricingTier === 'early'} 
-                onChange={() => onChange({ pricingTier: 'early' })}
-                className="sr-only peer" 
-              />
-              <div className="p-6 border-2 border-outline-variant/40 rounded-2xl transition-all hover:bg-surface-container-low peer-checked:border-primary peer-checked:bg-[#FFF9F0] h-full flex flex-col justify-between">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="bg-pricing-early/10 text-pricing-early text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                    Recomendado
-                  </span>
-                  <div className="w-5 h-5 rounded-full border-2 border-outline-variant flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary">
-                    {data.pricingTier === 'early' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+      {/* Qué incluye */}
+      <section className="bg-white p-6 rounded-2xl border border-primary/5 shadow-sm mb-8">
+        <h2 className="font-sans text-xs font-bold text-secondary mb-4 uppercase tracking-wider">
+          Tu inscripción incluye
+        </h2>
+        <ul className="space-y-2.5">
+          {INCLUSIONS.map((item) => (
+            <li key={item} className="flex items-start gap-2.5 font-sans text-sm text-on-surface-variant">
+              <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
+              {item}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <form onSubmit={handleSubmit} className="space-y-10">
+        {/* Q13 — Apadrinar */}
+        <div
+          data-error={Boolean(errors.sponsorship)}
+          className="bg-white p-6 md:p-8 rounded-2xl border border-primary/5 shadow-sm"
+        >
+          <Question
+            title="¿Te gustaría apoyar a otras mujeres para que puedan asistir al retiro?"
+            description={
+              <span className="flex items-start gap-2">
+                <Heart className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+                Gracias a estos aportes, muchas mujeres que no podrían costear el retiro logran
+                participar.
+              </span>
+            }
+            error={errors.sponsorship}
+          >
+            <div className="space-y-3">
+              {SPONSORSHIP_OPTIONS.map((option) => (
+                <RadioOption
+                  key={option}
+                  name="sponsorship"
+                  value={option}
+                  checked={data.sponsorship === option}
+                  onSelect={(value) => onChange({ sponsorship: value })}
+                  label={option}
+                />
+              ))}
+            </div>
+          </Question>
+        </div>
+
+        {/* Q14 — Qué pago estás realizando */}
+        <div
+          data-error={Boolean(errors.paymentOption)}
+          className="bg-white p-6 md:p-8 rounded-2xl border border-primary/5 shadow-sm"
+        >
+          <Question title="¿Qué pago estás realizando?" error={errors.paymentOption}>
+            <div className="space-y-6">
+              {(['anticipado', 'regular', 'voluntaria', 'donacion'] as const).map((group) => (
+                <div key={group}>
+                  <h3 className="font-sans text-[11px] font-bold text-tertiary uppercase tracking-wider mb-2.5">
+                    {GROUP_LABELS[group]}
+                  </h3>
+                  <div className="space-y-3">
+                    {PAYMENT_OPTIONS.filter((o) => o.group === group).map((option) => (
+                      <RadioOption
+                        key={option.id}
+                        name="paymentOption"
+                        value={option.id}
+                        checked={data.paymentOption === option.id}
+                        onSelect={(value) => onChange({ paymentOption: value })}
+                        label={option.label}
+                      />
+                    ))}
                   </div>
                 </div>
-                <div>
-                  <h3 className="font-sans text-base font-semibold text-primary">Early Bird</h3>
-                  <p className="font-display text-3xl text-primary mb-1 mt-1">$450 AUD</p>
-                  <p className="font-sans text-xs text-on-surface-variant italic">
-                    Válido hasta el 15 de Octubre, 2025
-                  </p>
-                </div>
-              </div>
-            </label>
+              ))}
+            </div>
+          </Question>
+        </div>
 
-            {/* Regular Card */}
-            <label className="relative cursor-pointer block">
-              <input 
-                type="radio" 
-                name="pricing" 
-                checked={data.pricingTier === 'regular'} 
-                onChange={() => onChange({ pricingTier: 'regular' })}
-                className="sr-only peer" 
-              />
-              <div className="p-6 border-2 border-outline-variant/40 rounded-2xl transition-all hover:bg-surface-container-low peer-checked:border-primary peer-checked:bg-[#FFF9F0] h-full flex flex-col justify-between">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="bg-pricing-regular/10 text-pricing-regular text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                    Estándar
-                  </span>
-                  <div className="w-5 h-5 rounded-full border-2 border-outline-variant flex items-center justify-center">
-                    {data.pricingTier === 'regular' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-sans text-base font-semibold text-primary">Regular</h3>
-                  <p className="font-display text-3xl text-primary mb-1 mt-1">$480 AUD</p>
-                  <p className="font-sans text-xs text-on-surface-variant italic">
-                    Precio regular a partir de Octubre
-                  </p>
-                </div>
-              </div>
-            </label>
-
-          </div>
-        </section>
-
-        {/* Payment Selection */}
-        <section className="bg-white p-6 rounded-2xl shadow-sm border border-primary/5">
-          <h2 className="font-sans text-sm font-bold text-secondary mb-4 uppercase tracking-wider">Tipo de Pago</h2>
-          <div className="space-y-3">
-            
-            {/* Pago Completo */}
-            <label className="flex items-center gap-3 p-4 rounded-xl bg-surface-container-low border border-outline-variant/10 cursor-pointer hover:border-primary/40 transition-colors">
-              <input 
-                type="radio" 
-                name="payment_type" 
-                value="full" 
-                checked={data.paymentType === 'full'}
-                onChange={() => onChange({ paymentType: 'full' })}
-                className="w-5 h-5 text-primary focus:ring-primary border-outline-variant"
-              />
-              <span className="font-sans text-sm font-semibold text-on-surface">Pago Completo</span>
-            </label>
-
-            {/* Pago en Cuotas */}
-            <label className="flex items-center gap-3 p-4 rounded-xl bg-surface-container-low border border-outline-variant/10 cursor-pointer hover:border-primary/40 transition-colors">
-              <input 
-                type="radio" 
-                name="payment_type" 
-                value="installments" 
-                checked={data.paymentType === 'installments'}
-                onChange={() => onChange({ paymentType: 'installments' })}
-                className="w-5 h-5 text-primary focus:ring-primary border-outline-variant"
-              />
-              <span className="font-sans text-sm font-semibold text-on-surface">Pago en Cuotas (Facilidades)</span>
-            </label>
-
-            {/* Incluir Donación Extra */}
-            <label className="flex items-center gap-3 p-4 rounded-xl bg-surface-container-low border border-outline-variant/10 cursor-pointer hover:border-primary/40 transition-colors">
-              <input 
-                type="radio" 
-                name="payment_type" 
-                value="donation" 
-                checked={data.paymentType === 'donation'}
-                onChange={() => onChange({ paymentType: 'donation' })}
-                className="w-5 h-5 text-primary focus:ring-primary border-outline-variant"
-              />
-              <span className="font-sans text-sm font-semibold text-on-surface">Incluir Donación Extra para otra hermana</span>
-            </label>
-
-          </div>
-        </section>
-
-        {/* Bank Details (Earth-toned Box) */}
-        <section className="bg-[#F2E5D5] p-6 md:p-8 rounded-2xl border-l-4 border-secondary text-on-surface">
+        {/* Datos bancarios */}
+        <section className="bg-surface-container-high p-6 md:p-8 rounded-2xl border-l-4 border-secondary text-on-surface">
           <div className="flex items-start gap-4">
             <Landmark className="w-6 h-6 text-secondary mt-1 flex-shrink-0" />
             <div className="w-full">
-              <h2 className="font-sans text-xs font-bold text-tertiary mb-3 uppercase tracking-wide">
+              <h2 className="font-sans text-xs font-bold text-tertiary mb-4 uppercase tracking-wide">
                 Detalles de Transferencia Bancaria
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="font-sans text-xs text-tertiary">Nombre de la cuenta</p>
-                  <p className="font-sans text-sm font-bold text-on-surface">Alegria BeWell House</p>
-                </div>
-                <div>
-                  <p className="font-sans text-xs text-tertiary">BSB</p>
-                  <p className="font-sans text-sm font-bold text-on-surface tracking-wider">062559</p>
-                </div>
-                <div>
-                  <p className="font-sans text-xs text-tertiary">Número de Cuenta</p>
-                  <p className="font-sans text-sm font-bold text-on-surface tracking-wider">10485590</p>
-                </div>
-                <div className="sm:col-span-2">
-                  <p className="font-sans text-xs text-tertiary italic mt-1">
-                    Por favor, usa tu nombre completo como referencia en tu transferencia.
+                {[
+                  { label: 'Nombre de la cuenta', value: BANK_DETAILS.accountName },
+                  { label: 'BSB', value: BANK_DETAILS.bsb },
+                  { label: 'Número de cuenta', value: BANK_DETAILS.accountNumber }
+                ].map(({ label, value }) => (
+                  <div key={label}>
+                    <p className="font-sans text-xs text-tertiary">{label}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-sans text-sm font-bold text-on-surface tracking-wide">{value}</p>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(label, value)}
+                        className="p-1 text-tertiary hover:text-primary transition-colors cursor-pointer"
+                        aria-label={`Copiar ${label}`}
+                      >
+                        {copied === label ? (
+                          <Check className="w-3.5 h-3.5 text-status-success" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <div className="sm:col-span-2 pt-2 border-t border-primary/10">
+                  <p className="font-sans text-xs text-on-surface-variant">
+                    <strong className="text-primary">Referencia obligatoria:</strong> tu nombre completo
+                    + la palabra <strong>RENUEVA</strong>.
                   </p>
                 </div>
               </div>
@@ -195,29 +286,145 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
           </div>
         </section>
 
-        {/* Cancellation Policy */}
-        <section className="p-6 rounded-2xl border border-outline-variant/40 bg-[#FCF9F2]/50">
+        {/* Comprobante de pago — OBLIGATORIO */}
+        <div
+          data-error={Boolean(errors.paymentProof)}
+          className={`bg-white p-6 md:p-8 rounded-2xl shadow-sm border-2 transition-colors ${
+            errors.paymentProof ? 'border-red-300' : 'border-primary/5'
+          }`}
+        >
+          <Question
+            title="Comprobante de pago"
+            description={
+              <>
+                <p>
+                  Adjuntá la <strong>captura de pantalla o el PDF de tu transferencia</strong>. Este
+                  paso es obligatorio: sin el comprobante no podemos confirmar tu reserva.
+                </p>
+                <p className="mt-1">
+                  Formatos aceptados: JPG, PNG, WEBP o PDF · Máximo {PROOF_RULES.maxSizeMB} MB.
+                </p>
+              </>
+            }
+            error={errors.paymentProof}
+          >
+            {data.paymentProof ? (
+              <div className="rounded-xl border-2 border-status-success/40 bg-status-success/5 p-4">
+                <div className="flex items-start gap-4">
+                  {isImageProof ? (
+                    <img
+                      src={data.paymentProof.dataUrl}
+                      alt="Vista previa del comprobante de pago"
+                      className="w-24 h-24 object-cover rounded-lg border border-outline-variant/40 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-lg bg-surface-container-low border border-outline-variant/40 flex items-center justify-center shrink-0">
+                      <FileText className="w-8 h-8 text-tertiary" />
+                    </div>
+                  )}
+
+                  <div className="min-w-0 flex-grow">
+                    <p className="font-sans text-xs font-bold text-status-success uppercase tracking-wider flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5" />
+                      Comprobante adjuntado
+                    </p>
+                    <p className="font-sans text-sm text-on-surface font-semibold mt-1 truncate">
+                      {data.paymentProof.name}
+                    </p>
+                    <p className="font-sans text-xs text-on-surface-variant mt-0.5">
+                      {(data.paymentProof.size / 1024).toFixed(0)} KB
+                    </p>
+                    <div className="flex items-center gap-3 mt-3">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="font-sans text-xs font-semibold text-primary hover:underline decoration-2 underline-offset-2 cursor-pointer"
+                      >
+                        Cambiar archivo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={removeProof}
+                        className="font-sans text-xs font-semibold text-red-600 hover:underline decoration-2 underline-offset-2 cursor-pointer flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Quitar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragging(true);
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-all ${
+                  dragging
+                    ? 'border-primary bg-primary/5'
+                    : 'border-outline-variant hover:border-primary/50 hover:bg-surface-container-low'
+                }`}
+              >
+                <UploadCloud className="w-10 h-10 text-secondary mx-auto mb-3" />
+                <p className="font-sans text-sm font-semibold text-primary">
+                  Subí la captura de tu transferencia
+                </p>
+                <p className="font-sans text-xs text-on-surface-variant mt-1">
+                  Arrastrá el archivo aquí o hacé clic para seleccionarlo
+                </p>
+              </div>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={PROOF_RULES.accept}
+              onChange={handleFileInput}
+              className="hidden"
+            />
+
+            {selectedOption?.amount && (
+              <p className="font-sans text-xs text-on-surface-variant mt-4 bg-surface-container-low px-3 py-2.5 rounded-lg border border-outline-variant/30">
+                Verificá que el comprobante corresponda a{' '}
+                <strong className="text-primary">${selectedOption.amount} AUD</strong> — {selectedOption.label}
+              </p>
+            )}
+          </Question>
+        </div>
+
+        {/* Política de cancelación */}
+        <section className="p-6 rounded-2xl border border-outline-variant/40 bg-cream-base/50">
           <div className="flex gap-3">
             <Info className="w-5 h-5 text-terracotta-soft mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="font-sans text-sm font-bold text-terracotta-soft mb-2">Política de Cancelación</h3>
+              <h3 className="font-sans text-sm font-bold text-terracotta-soft mb-2">
+                Política de Cancelación
+              </h3>
               <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
-                Entendemos que los planes pueden cambiar. Se ofrecerá un reembolso completo por cancelaciones realizadas con más de 30 días de antelación. Las cancelaciones realizadas entre 15 y 30 días antes del evento recibirán un crédito para futuros retiros. No se ofrecen reembolsos para cancelaciones con menos de 14 días de antelación debido a compromisos previos con el lugar.
+                Los pagos realizados no son reembolsables, salvo situaciones de emergencia evaluadas
+                por el equipo organizador. En esos casos podrá otorgarse un crédito para un próximo
+                retiro de Alegría Retreats. Tu lugar queda reservado únicamente una vez recibido el
+                pago y su comprobante.
               </p>
             </div>
           </div>
         </section>
 
-        {/* Action Buttons */}
-        <div className="pt-6 flex flex-col sm:flex-row gap-4 items-center justify-between border-t border-primary/10">
-          <button 
-            type="button" 
+        {/* Navegación */}
+        <div className="pt-6 flex flex-col-reverse sm:flex-row gap-4 items-center justify-between border-t border-primary/10">
+          <button
+            type="button"
             onClick={onBack}
-            className="text-primary font-sans text-sm font-semibold hover:underline decoration-2 underline-offset-4 cursor-pointer"
+            className="flex items-center gap-2 px-6 py-3 text-secondary font-sans text-sm font-semibold hover:bg-secondary/5 rounded-full transition-all cursor-pointer"
           >
-            Volver al paso anterior
+            <ArrowLeft className="w-4 h-4" />
+            Anterior
           </button>
-          <button 
+          <button
             type="submit"
             className="w-full sm:w-auto bg-primary text-white font-sans text-sm font-semibold px-10 py-4 rounded-full shadow-lg shadow-primary/20 hover:bg-primary-container hover:text-on-primary-container hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
@@ -226,6 +433,12 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
           </button>
         </div>
 
+        {!data.paymentProof && (
+          <p className="font-sans text-xs text-tertiary flex items-center justify-center gap-1.5 text-center">
+            <ShieldAlert className="w-3.5 h-3.5 text-secondary" />
+            No podrás avanzar sin adjuntar el comprobante de pago.
+          </p>
+        )}
       </form>
     </motion.div>
   );

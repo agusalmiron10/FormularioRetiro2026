@@ -128,10 +128,10 @@ export default function Footer() {
                       Al registrarte para el retiro "Renueva 2026", confirmas tu aceptación de los siguientes términos de participación:
                     </p>
                     <p>
-                      <strong>Reservas y Pagos:</strong> La confirmación de tu lugar requiere el depósito de los fondos mediante transferencia bancaria o tarjeta. El precio de preventa (Early Bird) es de $450 AUD, válido hasta el 15 de octubre de 2025.
+                      <strong>Reservas y Pagos:</strong> La confirmación de tu lugar requiere el depósito de los fondos mediante transferencia bancaria y el envío del comprobante correspondiente. El precio anticipado (Early Bird) es de $450 AUD, válido hasta el 31 de julio de 2026. A partir del 1 de agosto de 2026 el precio regular es de $480 AUD.
                     </p>
                     <p>
-                      <strong>Cancelaciones:</strong> Ofrecemos reembolso completo para solicitudes con más de 30 días de anticipación al evento. Cancelaciones entre 15 y 30 días antes recibirán un crédito para futuros retiros de Alegría Retreats.
+                      <strong>Cancelaciones:</strong> Los pagos realizados no son reembolsables, salvo situaciones de emergencia evaluadas por el equipo organizador, en cuyo caso podrá otorgarse un crédito para un próximo retiro de Alegría Retreats.
                     </p>
                     <p>
                       <strong>Responsabilidad:</strong> Alegría Retreats no se hace responsable por la pérdida o daño de pertenencias personales, ni por accidentes corporales leves derivados de actividades recreativas libres en la naturaleza.
