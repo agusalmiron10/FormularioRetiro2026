@@ -24,6 +24,9 @@ export default function App() {
   const [draftSaved, setDraftSaved] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [hasDraft, setHasDraft] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [registrationNumber, setRegistrationNumber] = useState<number | null>(null);
 
   // Scroll to top on step change
   useEffect(() => {
@@ -89,15 +92,52 @@ export default function App() {
     }, 4000);
   };
 
-  const handleRegistrationSubmit = () => {
-    // Clear draft on successful submission
-    localStorage.removeItem('renueva_2026_draft');
-    setHasDraft(false);
-    setStep('success');
+  const handleRegistrationSubmit = async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const { paymentProof, ...resto } = formData;
+
+      const body = new FormData();
+      body.append(
+        'datos',
+        // PayPal se sumará más adelante; hoy todas las inscripciones son por transferencia.
+        JSON.stringify({ ...resto, paymentMethod: 'transferencia' })
+      );
+      if (paymentProof) {
+        body.append('comprobante', paymentProof.file, paymentProof.name);
+      }
+
+      const res = await fetch('/api/inscripciones', { method: 'POST', body });
+      const data = (await res.json().catch(() => null)) as
+        | { ok: boolean; numero?: number; error?: string }
+        | null;
+
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error ?? 'No pudimos procesar tu inscripción.');
+      }
+
+      localStorage.removeItem('renueva_2026_draft');
+      setHasDraft(false);
+      setRegistrationNumber(data.numero ?? null);
+      setStep('success');
+    } catch (err) {
+      console.error('Error enviando la inscripción', err);
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : 'No pudimos enviar tu inscripción. Revisá tu conexión e intentá de nuevo.'
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleReset = () => {
     setFormData(INITIAL_REGISTRATION_DATA);
+    setRegistrationNumber(null);
+    setSubmitError(null);
     setStep('landing');
   };
 
@@ -195,14 +235,17 @@ export default function App() {
               onChange={handleUpdateData}
               onBack={() => setStep('step4')}
               onSubmit={handleRegistrationSubmit}
+              submitting={submitting}
+              submitError={submitError}
             />
           )}
 
           {step === 'success' && (
-            <SuccessScreen 
+            <SuccessScreen
               key="success"
-              fullName={formData.fullName} 
-              onReset={handleReset} 
+              fullName={formData.fullName}
+              registrationNumber={registrationNumber}
+              onReset={handleReset}
             />
           )}
         </AnimatePresence>

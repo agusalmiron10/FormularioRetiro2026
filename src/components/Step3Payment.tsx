@@ -82,7 +82,8 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
         name: file.name,
         type: file.type,
         size: file.size,
-        dataUrl: reader.result as string
+        dataUrl: reader.result as string,
+        file
       };
       onChange({ paymentProof: proof });
       setErrors((prev) => {

@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Send, Check, ShieldAlert, ChevronLeft, FileText, Instagram, Globe } from 'lucide-react';
+import { Send, ShieldAlert, ChevronLeft, FileText, Instagram, Globe, Loader2 } from 'lucide-react';
 import { RegistrationData } from '../types';
 import { IMAGE_URLS, PAYMENT_OPTIONS, LINKS } from '../data';
 import { CheckOption, StepProgress } from './FormControls';
@@ -15,10 +15,19 @@ interface Step5Props {
   onChange: (updated: Partial<RegistrationData>) => void;
   onBack: () => void;
   onSubmit: () => void;
+  submitting: boolean;
+  submitError: string | null;
   key?: string;
 }
 
-export default function Step5Finalize({ data, onChange, onBack, onSubmit }: Step5Props) {
+export default function Step5Finalize({
+  data,
+  onChange,
+  onBack,
+  onSubmit,
+  submitting,
+  submitError
+}: Step5Props) {
   const [error, setError] = useState('');
 
   const selectedPayment = PAYMENT_OPTIONS.find((o) => o.id === data.paymentOption);
@@ -213,10 +222,10 @@ export default function Step5Finalize({ data, onChange, onBack, onSubmit }: Step
               />
             </div>
 
-            {error && (
+            {(error || submitError) && (
               <p className="text-red-600 text-xs font-semibold mt-4 flex items-start gap-1.5 bg-red-50 px-3 py-2.5 rounded-lg border border-red-100">
                 <ShieldAlert className="w-4 h-4 shrink-0 mt-px" />
-                {error}
+                {error || submitError}
               </p>
             )}
           </section>
@@ -261,14 +270,26 @@ export default function Step5Finalize({ data, onChange, onBack, onSubmit }: Step
           <button
             type="button"
             onClick={handleFormSubmit}
-            className="w-full bg-primary hover:bg-primary-container text-white hover:text-on-primary-container py-5 rounded-full font-sans text-base font-bold shadow-md shadow-primary/20 flex items-center justify-center gap-3 cursor-pointer transition-all active:scale-95 duration-200"
+            disabled={submitting}
+            className="w-full bg-primary hover:bg-primary-container text-white hover:text-on-primary-container py-5 rounded-full font-sans text-base font-bold shadow-md shadow-primary/20 flex items-center justify-center gap-3 cursor-pointer transition-all active:scale-95 duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
           >
-            <span>Enviar Registro</span>
-            <Send className="w-4 h-4" />
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Enviando…</span>
+              </>
+            ) : (
+              <>
+                <span>Enviar Registro</span>
+                <Send className="w-4 h-4" />
+              </>
+            )}
           </button>
 
           <p className="text-center font-sans text-xs text-tertiary italic">
-            Tu registro será procesado de forma segura.
+            {submitting
+              ? 'Estamos subiendo tu comprobante, no cierres esta ventana.'
+              : 'Tu registro será procesado de forma segura.'}
           </p>
 
           <button

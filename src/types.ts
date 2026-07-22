@@ -7,7 +7,10 @@ export interface PaymentProof {
   name: string;
   type: string;
   size: number;
+  /** Sólo para la vista previa en pantalla. */
   dataUrl: string;
+  /** El archivo original, que es lo que se sube al servidor. */
+  file: File;
 }
 
 export interface RegistrationData {

@@ -9,11 +9,16 @@ import { motion } from 'motion/react';
 
 interface SuccessScreenProps {
   fullName: string;
+  registrationNumber: number | null;
   onReset: () => void;
   key?: string;
 }
 
-export default function SuccessScreen({ fullName, onReset }: SuccessScreenProps) {
+export default function SuccessScreen({
+  fullName,
+  registrationNumber,
+  onReset
+}: SuccessScreenProps) {
   // Extract first name for greeting
   const firstName = fullName ? fullName.split(' ')[0] : 'Hermana';
 
@@ -37,6 +42,17 @@ export default function SuccessScreen({ fullName, onReset }: SuccessScreenProps)
       <p className="font-sans text-sm md:text-base text-on-surface-variant max-w-lg mx-auto mb-10 leading-relaxed">
         ¡Gracias por registrarte, <strong>{firstName}</strong>! Recibimos tu inscripción y tu comprobante de pago. Nuestro equipo verificará la transferencia y te enviaremos un correo confirmando tu lugar en <strong>Renueva 2026</strong>. Nos vemos del 11 al 13 de septiembre en Wisemans Retreat.
       </p>
+
+      {registrationNumber !== null && (
+        <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/10 mb-10">
+          <span className="font-sans text-xs font-semibold text-tertiary uppercase tracking-wider">
+            Tu número de inscripción
+          </span>
+          <span className="font-display text-2xl text-primary leading-none">
+            #{String(registrationNumber).padStart(3, '0')}
+          </span>
+        </div>
+      )}
 
       {/* Action cards: Instagram & WhatsApp */}
       <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xl mx-auto mb-10">
