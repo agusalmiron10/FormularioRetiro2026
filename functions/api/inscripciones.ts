@@ -161,8 +161,21 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       ? `Otro: ${texto(datos.referralOther)}`
       : texto(datos.referralSource);
 
+  const email = texto(datos.email).toLowerCase();
+
   try {
-    const inscripcion = await env.DB.prepare(
+    // Si ya se inscribió antes, esto es un pago nuevo sobre la misma ficha
+    // (el caso típico: vuelve en agosto a pagar la segunda cuota). Se conservan
+    // los datos originales y sólo se agrega el pago.
+    const yaInscripta = await env.DB.prepare(
+      'SELECT id FROM inscripciones WHERE email = ? ORDER BY id LIMIT 1'
+    )
+      .bind(email)
+      .first<{ id: number }>();
+
+    const inscripcion = yaInscripta
+      ? yaInscripta
+      : await env.DB.prepare(
       `INSERT INTO inscripciones (
          nombre_completo, email, telefono, direccion, fecha_nacimiento, edad,
          contacto_emergencia_nombre, contacto_emergencia_telefono,
@@ -175,7 +188,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     )
       .bind(
         texto(datos.fullName),
-        texto(datos.email).toLowerCase(),
+        email,
         texto(datos.phone),
         texto(datos.address),
         texto(datos.birthDate),
@@ -203,6 +216,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     if (!inscripcion) throw new Error('La inserción no devolvió id');
 
+    const esPagoAdicional = Boolean(yaInscripta);
+
     await env.DB.prepare(
       `INSERT INTO pagos (
          inscripcion_id, tipo, descripcion, monto, metodo,
@@ -222,7 +237,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       )
       .run();
 
-    return json({ ok: true, numero: inscripcion.id });
+    return json({ ok: true, numero: inscripcion.id, pagoAdicional: esPagoAdicional });
   } catch (err) {
     console.error('Error guardando la inscripción', err);
     // El comprobante ya subido queda huérfano en R2; se limpia para no dejar basura.
