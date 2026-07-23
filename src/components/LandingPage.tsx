@@ -24,7 +24,7 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
     <div className="w-full">
       {/* Hero Section */}
       <section className="relative flex flex-col items-center overflow-hidden -mx-4 md:-mx-8 md:min-h-[90vh] md:h-[750px] md:justify-end md:pb-8">
-        {/* Background Image: full, uncropped, matches its own aspect ratio on mobile; fills the section on desktop */}
+        {/* Background Image: full width, undistorted, matches its own aspect ratio on mobile; covers the section on desktop */}
         <div
           className="relative w-full aspect-[16/9] bg-contain bg-center bg-no-repeat bg-[#FCF9F2] transition-transform duration-1000 md:absolute md:inset-0 md:aspect-auto md:z-0 md:bg-cover md:scale-102"
           style={{ backgroundImage: `url('${IMAGE_URLS.hero}')` }}
@@ -67,7 +67,7 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
       </section>
 
       {/* Details Grid / Event Info */}
-      <section id="detalles" className="py-24 bg-[#FCF9F2] px-6 md:px-16 scroll-mt-12">
+      <section id="detalles" className="pt-8 pb-24 md:py-24 bg-[#FCF9F2] px-6 md:px-16 scroll-mt-12">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
