@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Leaf, Menu } from 'lucide-react';
+import { useState } from 'react';
+import { Leaf, Menu, X } from 'lucide-react';
 import { RegistrationStep } from '../types';
 
 interface HeaderProps {
@@ -12,6 +13,8 @@ interface HeaderProps {
 }
 
 export default function Header({ currentStep, onNavigate }: HeaderProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-white border-b border-primary/5 shadow-sm shadow-primary/5 h-20 flex items-center justify-center px-6">
       <div className="w-full max-w-4xl flex items-center justify-between">
@@ -61,15 +64,57 @@ export default function Header({ currentStep, onNavigate }: HeaderProps) {
             Registro activo
           </span>
         )}
-        <button 
+        <button
           className="p-1.5 text-primary hover:bg-primary/5 rounded-full transition-colors"
-          aria-label="Abrir menú"
-          onClick={() => onNavigate('landing')}
+          aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={isMenuOpen}
+          onClick={() => setIsMenuOpen((open) => !open)}
         >
-          <Menu className="w-5 h-5" />
+          {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
       </div>
+
+      {/* Mobile Menu Panel */}
+      {isMenuOpen && (
+        <div className="absolute top-full left-0 w-full bg-white border-b border-primary/5 shadow-lg shadow-primary/5 md:hidden">
+          <nav className="flex flex-col px-6 py-4 gap-1">
+            <button
+              onClick={() => {
+                onNavigate('landing');
+                setIsMenuOpen(false);
+              }}
+              className={`text-left font-sans text-base font-semibold tracking-wide py-3 border-b border-primary/5 transition-colors duration-300 cursor-pointer ${
+                currentStep === 'landing' ? 'text-primary' : 'text-primary/80 hover:text-primary'
+              }`}
+            >
+              Inicio
+            </button>
+            <button
+              onClick={() => {
+                onNavigate('landing');
+                setIsMenuOpen(false);
+                setTimeout(() => {
+                  const el = document.getElementById('detalles');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
+              className="text-left font-sans text-base font-semibold tracking-wide text-primary/80 hover:text-primary py-3 border-b border-primary/5 transition-colors duration-300 cursor-pointer"
+            >
+              La Experiencia
+            </button>
+            <button
+              onClick={() => {
+                onNavigate('step1');
+                setIsMenuOpen(false);
+              }}
+              className="mt-3 px-6 py-2.5 bg-primary hover:bg-primary-container text-white hover:text-on-primary-container rounded-full font-sans text-sm font-semibold tracking-wide shadow-sm transition-all duration-300 cursor-pointer"
+            >
+              Comenzar registro
+            </button>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

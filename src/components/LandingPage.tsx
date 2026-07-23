@@ -23,27 +23,27 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
   return (
     <div className="w-full">
       {/* Hero Section */}
-      <section className="relative w-full min-h-[90vh] md:h-[750px] flex flex-col justify-end items-center overflow-hidden pb-6 md:pb-8 pt-16">
-        {/* Background Image with Dark Overlays */}
-        <div 
-          className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 scale-102"
+      <section className="relative w-full flex flex-col items-center overflow-hidden pt-16 md:min-h-[90vh] md:h-[750px] md:justify-end md:pb-8">
+        {/* Background Image: full, uncropped, matches its own aspect ratio on mobile; fills the section on desktop */}
+        <div
+          className="relative w-full aspect-[16/9] bg-contain bg-center bg-no-repeat bg-[#FCF9F2] transition-transform duration-1000 md:absolute md:inset-0 md:aspect-auto md:z-0 md:bg-cover md:scale-102"
           style={{ backgroundImage: `url('${IMAGE_URLS.hero}')` }}
         >
 
         </div>
 
         {/* Content Canvas */}
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center flex flex-col items-center">
+        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center flex flex-col items-center py-8 md:py-0">
 
 
           {/* Call to Actions */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.45 }}
             className="flex flex-col sm:flex-row gap-4 items-center w-full sm:w-auto"
           >
-            <button 
+            <button
               onClick={onStartRegistration}
               className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-primary-container text-white hover:text-on-primary-container rounded-full font-sans font-medium shadow-lg hover:shadow-primary/20 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
             >
