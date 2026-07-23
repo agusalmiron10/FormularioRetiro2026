@@ -13,25 +13,23 @@ interface HeaderProps {
 
 export default function Header({ currentStep, onNavigate }: HeaderProps) {
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-[#FCF9F2] border-b border-primary/5 shadow-sm shadow-primary/5 h-16 flex items-center justify-between px-6 md:px-16">
+    <header className="fixed top-0 left-0 w-full z-50 bg-white border-b border-primary/5 shadow-sm shadow-primary/5 h-20 flex items-center justify-center px-6">
+      <div className="w-full max-w-4xl flex items-center justify-between">
       {/* Brand Logo */}
       <button 
         onClick={() => onNavigate('landing')} 
         className="flex items-center gap-2 text-left group cursor-pointer focus:outline-none"
         aria-label="Volver al inicio"
       >
-        <Leaf className="w-6 h-6 text-primary group-hover:rotate-12 transition-transform duration-300" />
-        <h1 className="font-display text-2xl font-medium tracking-tight text-primary">
-          RENUEVA 2026
-        </h1>
+        <img src="/mesa-de-trabajo-2.jpeg" alt="Alegria BeWell" className="h-16 w-auto object-contain" />
       </button>
 
       {/* Desktop Navigation */}
       <nav className="hidden md:flex items-center gap-8">
         <button 
           onClick={() => onNavigate('landing')}
-          className={`font-sans text-sm font-medium tracking-wide transition-colors duration-300 cursor-pointer ${
-            currentStep === 'landing' ? 'text-primary font-semibold border-b-2 border-primary/40 pb-1' : 'text-on-surface-variant hover:text-primary'
+          className={`font-sans text-base font-semibold tracking-wide transition-colors duration-300 cursor-pointer ${
+            currentStep === 'landing' ? 'text-primary border-b-2 border-primary/40 pb-1' : 'text-primary/80 hover:text-primary'
           }`}
         >
           Inicio
@@ -44,17 +42,15 @@ export default function Header({ currentStep, onNavigate }: HeaderProps) {
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }, 100);
           }}
-          className="font-sans text-sm font-medium tracking-wide text-on-surface-variant hover:text-primary transition-colors duration-300 cursor-pointer"
+          className="font-sans text-base font-semibold tracking-wide text-primary/80 hover:text-primary transition-colors duration-300 cursor-pointer"
         >
           La Experiencia
         </button>
         <button 
           onClick={() => onNavigate('step1')}
-          className={`font-sans text-sm font-medium tracking-wide transition-colors duration-300 cursor-pointer ${
-            currentStep !== 'landing' && currentStep !== 'success' ? 'text-primary font-semibold border-b-2 border-primary/40 pb-1' : 'text-on-surface-variant hover:text-primary'
-          }`}
+          className="px-6 py-2.5 bg-primary hover:bg-primary-container text-white hover:text-on-primary-container rounded-full font-sans text-sm font-semibold tracking-wide shadow-sm hover:shadow-primary/20 transition-all duration-300 cursor-pointer"
         >
-          Registro
+          Comenzar registro
         </button>
       </nav>
 
@@ -72,6 +68,7 @@ export default function Header({ currentStep, onNavigate }: HeaderProps) {
         >
           <Menu className="w-5 h-5" />
         </button>
+      </div>
       </div>
     </header>
   );

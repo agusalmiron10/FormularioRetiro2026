@@ -23,49 +23,18 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
   return (
     <div className="w-full">
       {/* Hero Section */}
-      <section className="relative w-full min-h-[90vh] md:h-[750px] flex items-center justify-center overflow-hidden pt-16">
+      <section className="relative w-full min-h-[90vh] md:h-[750px] flex flex-col justify-end items-center overflow-hidden pb-6 md:pb-8 pt-16">
         {/* Background Image with Dark Overlays */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 scale-102"
           style={{ backgroundImage: `url('${IMAGE_URLS.hero}')` }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/70"></div>
+
         </div>
 
         {/* Content Canvas */}
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center flex flex-col items-center">
-          {/* Date Badge */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-6 inline-flex items-center px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-xl"
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            <span className="font-sans text-xs font-semibold tracking-wider uppercase">
-              11 - 13 SEPTIEMBRE 2026
-            </span>
-          </motion.div>
 
-          {/* Title */}
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15 }}
-            className="font-display text-4xl md:text-6xl text-white mb-6 leading-tight max-w-3xl"
-          >
-            RENUEVA 2026 — Tres días para hacer una pausa y renovar tu corazón.
-          </motion.h2>
-
-          {/* Subtitle */}
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="font-sans text-base md:text-lg text-white/90 mb-10 max-w-2xl leading-relaxed"
-          >
-            Un retiro diseñado para mujeres que buscan reconectar con su esencia espiritual en la serenidad de la naturaleza. Encuentra descanso, comunidad y una profunda renovación interior.
-          </motion.p>
 
           {/* Call to Actions */}
           <motion.div 
@@ -81,12 +50,7 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
               Comenzar registro
               <ArrowRight className="w-4 h-4" />
             </button>
-            <button 
-              onClick={scrollToDetails}
-              className="w-full sm:w-auto px-8 py-4 border-2 border-white/80 hover:border-white text-white hover:bg-white/10 rounded-full font-sans font-medium active:scale-95 transition-all duration-300 cursor-pointer"
-            >
-              Ver detalles
-            </button>
+
           </motion.div>
         </div>
 
@@ -176,40 +140,7 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-[#F8EDE0] relative overflow-hidden px-6 md:px-16">
-        {/* Soft Background blur accents */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-sage-light/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-terracotta-soft/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="max-w-3xl mx-auto text-center relative z-10">
-          <h3 className="font-display text-4xl text-primary mb-6">¿Estás lista para tu renovación?</h3>
-          <p className="font-sans text-base md:text-lg text-tertiary mb-10 max-w-xl mx-auto leading-relaxed">
-            Los cupos son limitados para garantizar una experiencia íntima y personal. Reserva tu lugar hoy y comienza este viaje hacia la paz interior.
-          </p>
-
-          {/* Pricing Glass Card */}
-          <div className="bg-white/80 backdrop-blur-md border border-primary/10 p-8 rounded-[2rem] shadow-sm max-w-xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="text-left">
-                <span className="font-sans text-xs font-bold text-pricing-early bg-pricing-early/10 px-3.5 py-1 rounded-full uppercase tracking-wider">
-                  Early Bird
-                </span>
-                <p className="font-display text-4xl text-primary mt-3">$450 AUD</p>
-                <p className="font-sans text-xs text-on-surface-variant italic mt-1">
-                  Incluye alojamiento y todas las comidas
-                </p>
-              </div>
-              <button 
-                onClick={onStartRegistration}
-                className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-primary-container text-white hover:text-on-primary-container rounded-full font-sans font-semibold shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 active:scale-95 transition-all duration-300 cursor-pointer"
-              >
-                Registrarme ahora
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

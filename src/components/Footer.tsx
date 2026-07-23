@@ -25,9 +25,9 @@ export default function Footer() {
   };
 
   return (
-    <footer className="w-full bg-[#F8EDE0] border-t border-primary/10 py-12 px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-6 mt-auto">
+    <footer className="w-full bg-white border-t border-primary/10 py-12 px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-6 mt-auto">
       <div className="flex flex-col items-center md:items-start text-center md:text-left">
-        <h4 className="font-display text-xl font-medium text-primary">Alegría Retreats</h4>
+        <img src="/mesa-de-trabajo-2.jpeg" alt="Alegria BeWell" className="h-12 w-auto object-contain mb-2" />
         <p className="font-sans text-xs text-on-surface-variant mt-1.5">
           © 2026 Alegría Retreats. All rights reserved.
         </p>
