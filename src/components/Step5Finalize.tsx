@@ -99,10 +99,10 @@ export default function Step5Finalize({
                 }
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between items-start gap-4 py-3">
-                  <dt className="text-tertiary text-xs font-semibold uppercase tracking-wide shrink-0">
+                  <dt className="text-tertiary text-xs font-semibold uppercase tracking-wide max-w-[50%]">
                     {label}
                   </dt>
-                  <dd className="text-on-surface font-semibold text-right min-w-0 break-words">
+                  <dd className="text-on-surface font-semibold text-right min-w-0 flex-1 break-words">
                     {value || <span className="text-on-surface-variant italic font-normal">{t('step5.summary.empty')}</span>}
                   </dd>
                 </div>
