@@ -137,6 +137,16 @@ export const crearInscripcionManual = (datos: { nombre_completo: string; email: 
     body: JSON.stringify(datos)
   });
 
+export const importarInscripciones = (filas: unknown[]) =>
+  pedir<{ insertadas: number; omitidas: { email: string; motivo: string }[] }>(
+    '/api/admin/importar',
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ filas })
+    }
+  );
+
 /** El token va en la URL porque <img> y las descargas no mandan cabeceras. */
 export const urlComprobante = (pagoId: number) =>
   `/api/admin/comprobante/${pagoId}?token=${encodeURIComponent(leerToken())}`;

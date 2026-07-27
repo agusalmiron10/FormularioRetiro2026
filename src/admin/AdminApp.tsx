@@ -23,7 +23,8 @@ import {
   AlertTriangle,
   Clock,
   Printer,
-  MessageCircle
+  MessageCircle,
+  Upload
 } from 'lucide-react';
 import {
   ErrorApi,
@@ -38,6 +39,7 @@ import {
 } from './api';
 import { Recordatorio, calcularRecordatorio, urlWhatsapp } from './recordatorios';
 import FichaInscripcion from './FichaInscripcion';
+import ModalImportarExcel from './ModalImportarExcel';
 
 const VERDE_WHATSAPP = '#25D366';
 const VERDE_WHATSAPP_TEXTO = '#128C4A';
@@ -348,6 +350,7 @@ export default function AdminApp() {
   const [nuevaInscripcion, setNuevaInscripcion] = useState({ nombre_completo: '', email: '', telefono: '' });
   const [creandoManual, setCreandoManual] = useState(false);
   const [modalRecordatorios, setModalRecordatorios] = useState(false);
+  const [modalImportar, setModalImportar] = useState(false);
 
   // Cuenta regresiva
   const fechaRetiro = new Date('2026-09-11T00:00:00');
@@ -584,8 +587,16 @@ export default function AdminApp() {
           </button>
 
           <button
+            onClick={() => setModalImportar(true)}
+            className="ml-auto flex items-center gap-2 px-4 py-3 bg-white border border-outline-variant/40 text-tertiary font-sans text-xs font-semibold rounded-full hover:border-primary hover:text-primary transition-colors cursor-pointer whitespace-nowrap"
+          >
+            <Upload className="w-4 h-4" />
+            Importar Excel
+          </button>
+
+          <button
             onClick={() => setModalManual(true)}
-            className="ml-auto flex items-center gap-2 px-4 py-3 bg-tertiary text-white font-sans text-xs font-semibold rounded-full hover:bg-tertiary/90 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+            className="flex items-center gap-2 px-4 py-3 bg-tertiary text-white font-sans text-xs font-semibold rounded-full hover:bg-tertiary/90 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
           >
             + Nueva manual
           </button>
@@ -708,6 +719,14 @@ export default function AdminApp() {
         <ModalRecordatorios
           inscripciones={datos?.inscripciones ?? []}
           onCerrar={() => setModalRecordatorios(false)}
+        />
+      )}
+
+      {/* Modal Importar Excel */}
+      {modalImportar && (
+        <ModalImportarExcel
+          onCerrar={() => setModalImportar(false)}
+          onImportado={refrescar}
         />
       )}
 
