@@ -46,6 +46,7 @@ const GROUP_LABELS: Record<string, string> = {
 export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Props) {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [copied, setCopied] = useState<string | null>(null);
+  const [copiedAll, setCopiedAll] = useState(false);
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -56,6 +57,22 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
       setTimeout(() => setCopied(null), 2000);
     } catch {
       /* El portapapeles puede estar bloqueado; el dato sigue visible en pantalla. */
+    }
+  };
+
+  const copyAllBankDetails = async () => {
+    const text = [
+      `Banco: Alegria BeWell House`,
+      `BSB: ${BANK_DETAILS.bsb}`,
+      `Cuenta: ${BANK_DETAILS.accountNumber}`,
+      `Referencia: Tu nombre completo + RENUEVA`
+    ].join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedAll(true);
+      setTimeout(() => setCopiedAll(false), 2500);
+    } catch {
+      /* portapapeles bloqueado */
     }
   };
 
@@ -248,9 +265,26 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
           <div className="flex items-start gap-4">
             <Landmark className="w-6 h-6 text-secondary mt-1 flex-shrink-0" />
             <div className="w-full">
-              <h2 className="font-sans text-xs font-bold text-tertiary mb-4 uppercase tracking-wide">
-                Detalles de Transferencia Bancaria
-              </h2>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h2 className="font-sans text-xs font-bold text-tertiary uppercase tracking-wide">
+                  Detalles de Transferencia Bancaria
+                </h2>
+                <button
+                  type="button"
+                  onClick={copyAllBankDetails}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-sans text-xs font-semibold transition-all cursor-pointer ${
+                    copiedAll
+                      ? 'bg-status-success/15 text-status-success border border-status-success/30'
+                      : 'bg-white border border-outline-variant/50 text-tertiary hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  {copiedAll ? (
+                    <><Check className="w-3.5 h-3.5" /> ¡Copiado!</>
+                  ) : (
+                    <><Copy className="w-3.5 h-3.5" /> Copiar todo</>
+                  )}
+                </button>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { label: 'Nombre de la cuenta', value: BANK_DETAILS.accountName },

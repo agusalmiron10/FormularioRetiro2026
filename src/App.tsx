@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
-import { Sparkles, Trash2, CheckCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Sparkles, Trash2, CheckCircle, CloudUpload } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -25,6 +25,8 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [hasDraft, setHasDraft] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [autoSaveAt, setAutoSaveAt] = useState<Date | null>(null);
+  const autoSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [registrationNumber, setRegistrationNumber] = useState<number | null>(null);
 
@@ -40,6 +42,29 @@ export default function App() {
       setHasDraft(true);
     }
   }, []);
+
+  // Auto-save silencioso cada 30s mientras se está en un paso del formulario
+  useEffect(() => {
+    const isFormStep = ['step1', 'step2', 'step3', 'step4', 'step5'].includes(step);
+    if (!isFormStep) return;
+
+    if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+
+    autoSaveRef.current = setTimeout(() => {
+      const { paymentProof: _omitted, ...draft } = formData;
+      try {
+        localStorage.setItem('renueva_2026_draft', JSON.stringify(draft));
+        setHasDraft(true);
+        setAutoSaveAt(new Date());
+      } catch {
+        // localStorage llena — no mostramos error para no molestar
+      }
+    }, 30000);
+
+    return () => {
+      if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+    };
+  }, [formData, step]);
 
   const handleUpdateData = (updated: Partial<RegistrationData>) => {
     setFormData((prev) => {
@@ -262,6 +287,25 @@ export default function App() {
           >
             <CheckCircle className="w-5 h-5 text-status-success shrink-0" />
             <span className="font-sans text-xs font-semibold tracking-wide">{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Auto-save indicator — discreto, abajo a la derecha */}
+      <AnimatePresence>
+        {autoSaveAt && ['step1','step2','step3','step4','step5'].includes(step) && (
+          <motion.div
+            key={autoSaveAt.getTime()}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="fixed bottom-6 right-6 z-40 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur border border-outline-variant/30 shadow-sm"
+          >
+            <CloudUpload className="w-3.5 h-3.5 text-tertiary" />
+            <span className="font-sans text-[11px] text-tertiary">
+              Guardado {autoSaveAt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
