@@ -70,9 +70,44 @@ const bloqueCalendario = (): string => `
     </a>
   </div>`;
 
+interface Adjunto {
+  filename: string;
+  content: string; // base64, sin el prefijo "data:"
+}
+
+/** ArrayBuffer -> base64, de a bloques para no reventar el límite de argumentos de String.fromCharCode. */
+const aBase64 = (buffer: ArrayBuffer): string => {
+  const bytes = new Uint8Array(buffer);
+  let binario = '';
+  const TAMANO_BLOQUE = 8192;
+  for (let i = 0; i < bytes.length; i += TAMANO_BLOQUE) {
+    binario += String.fromCharCode(...bytes.subarray(i, i + TAMANO_BLOQUE));
+  }
+  return btoa(binario);
+};
+
+/**
+ * PDF con la dirección e instrucciones para llegar al lugar del retiro.
+ * Vive como archivo estático (public/) para poder actualizarlo sin tocar
+ * código; se busca por HTTP en cada envío en vez de embeberlo en el bundle.
+ */
+async function adjuntoComoLlegar(): Promise<Adjunto | null> {
+  try {
+    const res = await fetch(`${SITE_URL}/como-llegar-renueva-2026.pdf`);
+    if (!res.ok) {
+      console.error('No se pudo obtener el PDF de "cómo llegar":', res.status);
+      return null;
+    }
+    return { filename: 'Como-llegar-Renueva-2026.pdf', content: aBase64(await res.arrayBuffer()) };
+  } catch (err) {
+    console.error('Error de red obteniendo el PDF de "cómo llegar"', err);
+    return null;
+  }
+}
+
 async function enviarMail(
   env: EnvMail,
-  opciones: { to: string; subject: string; html: string }
+  opciones: { to: string; subject: string; html: string; attachments?: Adjunto[] }
 ): Promise<ResultadoEnvio> {
   if (!env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY no configurada: se omite el envío de mail.');
@@ -91,7 +126,8 @@ async function enviarMail(
         to: [opciones.to],
         reply_to: RESPONDER_A,
         subject: opciones.subject,
-        html: opciones.html
+        html: opciones.html,
+        ...(opciones.attachments?.length ? { attachments: opciones.attachments } : {})
       })
     });
 
@@ -221,18 +257,24 @@ export async function enviarPagoVerificado(
       ${linea('Fecha del pago', datos.pagadoEn)}
     </table>
 
-    <p style="margin:0;color:#5C4A3A;font-size:13px;line-height:1.6;">
+    <p style="margin:0 0 20px;color:#5C4A3A;font-size:13px;line-height:1.6;">
       Si hiciste esta inscripción en cuotas, recordá completar el pago restante antes del
       retiro. Cualquier duda, respondé este mismo mail.
+    </p>
+    <p style="margin:0;color:#5C4A3A;font-size:13px;line-height:1.6;">
+      Te dejamos adjunta la dirección y cómo llegar al lugar del retiro.
     </p>
     ${bloquePortal(datos.token)}
     ${bloqueCalendario()}`
   );
 
+  const adjunto = await adjuntoComoLlegar();
+
   return enviarMail(env, {
     to: datos.email,
     subject: `Tu pago fue verificado · Renueva 2026 · #${String(datos.numero).padStart(3, '0')}`,
-    html
+    html,
+    attachments: adjunto ? [adjunto] : undefined
   });
 }
 
