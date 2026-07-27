@@ -41,6 +41,7 @@ import { Recordatorio, calcularRecordatorio } from './recordatorios';
 import FilaInscripcion, { DetalleInscripcion } from './FichaInscripcion';
 import ModalImportarExcel from './ModalImportarExcel';
 import ModalRecordatorio from './ModalRecordatorio';
+import MapaProcedencia from './MapaProcedencia';
 
 const COLOR_RECORDATORIOS = '#5D2304';
 
@@ -566,6 +567,9 @@ export default function AdminApp() {
 
             {/* Gráfico de recaudación */}
             <GraficoRecaudacion resumen={resumen} />
+
+            {/* De dónde vienen */}
+            <MapaProcedencia inscripciones={datos?.inscripciones ?? []} />
           </>
         )}
 
