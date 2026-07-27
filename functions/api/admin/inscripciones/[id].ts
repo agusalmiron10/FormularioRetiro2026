@@ -23,22 +23,27 @@ export const onRequestPatch: PagesFunction<AdminEnv> = async (context) => {
     return Response.json({ ok: false, error: 'Cuerpo de la petición inválido' }, { status: 400 });
   }
 
-  // Lista de campos permitidos para actualizar
+  // Lista de campos permitidos para actualizar. id, creado_en y los campos de
+  // confirmación de términos quedan afuera a propósito — no son datos de la
+  // persona, son metadata del registro.
   const permitidos = [
-    'nombre_completo', 'email', 'telefono', 'direccion', 'fecha_nacimiento', 
-    'contacto_emergencia_nombre', 'contacto_emergencia_telefono', 'idioma', 
-    'origen_viaje', 'dieta_otro', 'apoyo_otras_mujeres', 'condicion_medica', 
-    'preferencia_habitacion', 'transporte', 'oracion', 'expectativas_otro', 
+    'nombre_completo', 'email', 'telefono', 'direccion', 'fecha_nacimiento', 'edad',
+    'contacto_emergencia_nombre', 'contacto_emergencia_telefono', 'idioma',
+    'origen_viaje', 'dieta', 'dieta_otro', 'apoyo_otras_mujeres', 'condicion_medica',
+    'preferencia_habitacion', 'transporte', 'oracion', 'expectativas', 'expectativas_otro',
     'como_se_entero', 'comentarios'
   ];
 
+  // dieta y expectativas se guardan como array JSON en la base.
+  const camposLista = new Set(['dieta', 'expectativas']);
+
   const sets: string[] = [];
   const vals: any[] = [];
-  
+
   for (const [key, value] of Object.entries(body)) {
     if (permitidos.includes(key)) {
       sets.push(`${key} = ?`);
-      vals.push(value);
+      vals.push(camposLista.has(key) ? JSON.stringify(Array.isArray(value) ? value : []) : value);
     }
   }
 

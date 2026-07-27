@@ -327,6 +327,97 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: string | null | un
   );
 }
 
+/** Campos de texto simple: [clave, etiqueta]. */
+const CAMPOS_PERSONALES: [keyof DatosEdicion, string][] = [
+  ['nombre_completo', 'Nombre completo'],
+  ['email', 'Email'],
+  ['telefono', 'Teléfono'],
+  ['direccion', 'Dirección'],
+  ['fecha_nacimiento', 'Fecha de nacimiento'],
+  ['edad', 'Edad'],
+  ['contacto_emergencia_nombre', 'Contacto de emergencia'],
+  ['contacto_emergencia_telefono', 'Teléfono del contacto']
+];
+
+const CAMPOS_RETIRO: [keyof DatosEdicion, string][] = [
+  ['origen_viaje', 'Viaja desde'],
+  ['apoyo_otras_mujeres', 'Apoyo a otras mujeres'],
+  ['condicion_medica', 'Condición médica'],
+  ['preferencia_habitacion', 'Compañera de habitación'],
+  ['transporte', 'Transporte'],
+  ['oracion', 'Tiempo de oración']
+];
+
+interface DatosEdicion {
+  nombre_completo: string;
+  email: string;
+  telefono: string;
+  direccion: string;
+  fecha_nacimiento: string;
+  edad: string;
+  contacto_emergencia_nombre: string;
+  contacto_emergencia_telefono: string;
+  idioma: string;
+  origen_viaje: string;
+  dieta: string;
+  dieta_otro: string;
+  apoyo_otras_mujeres: string;
+  condicion_medica: string;
+  preferencia_habitacion: string;
+  transporte: string;
+  oracion: string;
+  expectativas: string;
+  expectativas_otro: string;
+  como_se_entero: string;
+  comentarios: string;
+}
+
+const aDatosEdicion = (inscripcion: Inscripcion): DatosEdicion => ({
+  nombre_completo: inscripcion.nombre_completo,
+  email: inscripcion.email,
+  telefono: inscripcion.telefono,
+  direccion: inscripcion.direccion,
+  fecha_nacimiento: inscripcion.fecha_nacimiento,
+  edad: inscripcion.edad?.toString() ?? '',
+  contacto_emergencia_nombre: inscripcion.contacto_emergencia_nombre,
+  contacto_emergencia_telefono: inscripcion.contacto_emergencia_telefono,
+  idioma: inscripcion.idioma,
+  origen_viaje: inscripcion.origen_viaje,
+  dieta: inscripcion.dieta.join(', '),
+  dieta_otro: inscripcion.dieta_otro ?? '',
+  apoyo_otras_mujeres: inscripcion.apoyo_otras_mujeres ?? '',
+  condicion_medica: inscripcion.condicion_medica ?? '',
+  preferencia_habitacion: inscripcion.preferencia_habitacion ?? '',
+  transporte: inscripcion.transporte ?? '',
+  oracion: inscripcion.oracion ?? '',
+  expectativas: inscripcion.expectativas.join(', '),
+  expectativas_otro: inscripcion.expectativas_otro ?? '',
+  como_se_entero: inscripcion.como_se_entero ?? '',
+  comentarios: inscripcion.comentarios ?? ''
+});
+
+function CampoTexto({
+  etiqueta,
+  valor,
+  onChange
+}: {
+  etiqueta: string;
+  valor: string;
+  onChange: (valor: string) => void;
+}) {
+  return (
+    <div>
+      <label className="block font-sans text-xs font-semibold text-tertiary mb-1">{etiqueta}</label>
+      <input
+        type="text"
+        value={valor}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary"
+      />
+    </div>
+  );
+}
+
 function ModalEdicion({
   inscripcion,
   onCancelar,
@@ -336,32 +427,36 @@ function ModalEdicion({
   onCancelar: () => void;
   onGuardar: () => void;
 }) {
-  const [datos, setDatos] = useState<Partial<Inscripcion>>({
-    nombre_completo: inscripcion.nombre_completo,
-    email: inscripcion.email,
-    telefono: inscripcion.telefono,
-    direccion: inscripcion.direccion,
-    condicion_medica: inscripcion.condicion_medica || '',
-    comentarios: inscripcion.comentarios || '',
-  });
+  const [datos, setDatos] = useState<DatosEdicion>(aDatosEdicion(inscripcion));
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
+
+  const handleChange = (campo: keyof DatosEdicion, valor: string) => {
+    setDatos((prev) => ({ ...prev, [campo]: valor }));
+  };
 
   const guardar = async () => {
     setGuardando(true);
     setError('');
     try {
-      await actualizarInscripcion(inscripcion.id, datos);
+      const listaDe = (texto: string) =>
+        texto
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+      await actualizarInscripcion(inscripcion.id, {
+        ...datos,
+        edad: datos.edad.trim() ? Number.parseInt(datos.edad, 10) : null,
+        dieta: listaDe(datos.dieta),
+        expectativas: listaDe(datos.expectativas)
+      });
       onGuardar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar');
     } finally {
       setGuardando(false);
     }
-  };
-
-  const handleChange = (campo: keyof Inscripcion, valor: string) => {
-    setDatos((prev) => ({ ...prev, [campo]: valor }));
   };
 
   return (
@@ -375,32 +470,102 @@ function ModalEdicion({
           Editar Inscripción #{inscripcion.id}
         </h3>
 
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Nombre completo</label>
-            <input type="text" value={datos.nombre_completo} onChange={(e) => handleChange('nombre_completo', e.target.value)} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Email</label>
-              <input type="email" value={datos.email} onChange={(e) => handleChange('email', e.target.value)} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary" />
+        <div className="space-y-5 mb-6">
+          <section className="space-y-3">
+            <p className="font-sans text-[10px] font-bold text-tertiary uppercase tracking-wider">
+              Datos personales
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {CAMPOS_PERSONALES.map(([campo, etiqueta]) => (
+                <div key={campo} className={campo === 'nombre_completo' ? 'col-span-2' : ''}>
+                  <CampoTexto
+                    etiqueta={etiqueta}
+                    valor={datos[campo]}
+                    onChange={(v) => handleChange(campo, v)}
+                  />
+                </div>
+              ))}
+              <div>
+                <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Idioma</label>
+                <select
+                  value={datos.idioma}
+                  onChange={(e) => handleChange('idioma', e.target.value)}
+                  className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary"
+                >
+                  <option value="es">Español</option>
+                  <option value="en">Inglés</option>
+                  <option value="both">Ambos</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Teléfono</label>
-              <input type="text" value={datos.telefono} onChange={(e) => handleChange('telefono', e.target.value)} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary" />
+          </section>
+
+          <section className="space-y-3">
+            <p className="font-sans text-[10px] font-bold text-tertiary uppercase tracking-wider">
+              Del retiro
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {CAMPOS_RETIRO.map(([campo, etiqueta]) => (
+                <div key={campo}>
+                  <CampoTexto
+                    etiqueta={etiqueta}
+                    valor={datos[campo]}
+                    onChange={(v) => handleChange(campo, v)}
+                  />
+                </div>
+              ))}
             </div>
-          </div>
-          <div>
-            <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Dirección</label>
-            <input type="text" value={datos.direccion} onChange={(e) => handleChange('direccion', e.target.value)} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary" />
-          </div>
-          <div>
-            <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Condición Médica</label>
-            <input type="text" value={datos.condicion_medica || ''} onChange={(e) => handleChange('condicion_medica', e.target.value)} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary" />
-          </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-sans text-xs font-semibold text-tertiary mb-1">
+                  Dieta (separada por comas)
+                </label>
+                <input
+                  type="text"
+                  value={datos.dieta}
+                  onChange={(e) => handleChange('dieta', e.target.value)}
+                  className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <CampoTexto
+                etiqueta="Dieta — otro"
+                valor={datos.dieta_otro}
+                onChange={(v) => handleChange('dieta_otro', v)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-sans text-xs font-semibold text-tertiary mb-1">
+                  Expectativas (separadas por comas)
+                </label>
+                <input
+                  type="text"
+                  value={datos.expectativas}
+                  onChange={(e) => handleChange('expectativas', e.target.value)}
+                  className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <CampoTexto
+                etiqueta="Expectativas — otro"
+                valor={datos.expectativas_otro}
+                onChange={(v) => handleChange('expectativas_otro', v)}
+              />
+            </div>
+            <CampoTexto
+              etiqueta="Cómo se enteró"
+              valor={datos.como_se_entero}
+              onChange={(v) => handleChange('como_se_entero', v)}
+            />
+          </section>
+
           <div>
             <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Comentarios</label>
-            <textarea value={datos.comentarios || ''} onChange={(e) => handleChange('comentarios', e.target.value)} rows={3} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary resize-none" />
+            <textarea
+              value={datos.comentarios}
+              onChange={(e) => handleChange('comentarios', e.target.value)}
+              rows={3}
+              className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary resize-none"
+            />
           </div>
         </div>
 
