@@ -25,7 +25,7 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
     return json({ ok: false, error: 'Pago inválido.' }, 400);
   }
 
-  let cuerpo: { estado?: string; pagado_en?: string; nota?: string };
+  let cuerpo: { estado?: string; pagado_en?: string; nota?: string; notificar?: boolean };
   try {
     cuerpo = await request.json();
   } catch {
@@ -92,8 +92,15 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
 
     // El mail sólo sale si el estado realmente cambió — repetir "Verificar"
     // sobre un pago que ya estaba verificado (por corregir sólo la fecha o
-    // la nota, por ejemplo) no debe reenviar el aviso.
-    if (estado !== estadoAnterior) {
+    // la nota, por ejemplo) no debe reenviar el aviso. Además, el panel
+    // permite marcar el cambio "sólo para el sistema" (notificar: false),
+    // útil para pagos viejos importados donde reenviar el aviso hoy sería
+    // confuso.
+    const notificar = cuerpo.notificar !== false;
+    if (estado !== estadoAnterior && !notificar) {
+      console.log(`Pago ${id}: cambio a "${estado}" sin notificar (marcado desde el panel).`);
+    }
+    if (estado !== estadoAnterior && notificar) {
       if (estado === 'verificado') {
         const { enviado, error: errorMail } = await enviarPagoVerificado(env, {
           numero: pago.inscripcion_id,

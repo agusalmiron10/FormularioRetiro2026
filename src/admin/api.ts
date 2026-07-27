@@ -107,7 +107,7 @@ export const cargarListado = (filtros: { estado?: string; q?: string }) => {
 
 export const actualizarPago = (
   id: number,
-  cambios: { estado: string; pagado_en?: string; nota?: string }
+  cambios: { estado: string; pagado_en?: string; nota?: string; notificar?: boolean }
 ) =>
   pedir<Record<string, never>>(`/api/admin/pagos/${id}/verificar`, {
     method: 'POST',

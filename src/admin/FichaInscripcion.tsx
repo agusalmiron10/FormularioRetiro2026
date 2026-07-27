@@ -33,7 +33,7 @@ const ESTILO_ESTADO: Record<Pago['estado'], string> = {
   rechazado: 'bg-red-100 text-red-700'
 };
 
-/** Confirmación antes de verificar/rechazar — ambas acciones mandan un mail real. */
+/** Confirmación antes de verificar/rechazar — por defecto ambas acciones mandan un mail real. */
 function ModalConfirmacion({
   tipo,
   nombreInscripta,
@@ -49,9 +49,10 @@ function ModalConfirmacion({
   pagoDescripcion: string;
   guardando: boolean;
   onCancelar: () => void;
-  onConfirmar: () => void;
+  onConfirmar: (notificar: boolean) => void;
 }) {
   const esVerificar = tipo === 'verificado';
+  const [notificar, setNotificar] = useState(true);
 
   return (
     <div
@@ -77,15 +78,27 @@ function ModalConfirmacion({
           {pagoDescripcion} de <strong className="text-on-surface">{nombreInscripta}</strong>.
         </p>
 
-        <div className="flex items-start gap-2 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 mb-5">
-          <Mail className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
-          <p className="font-sans text-xs text-on-surface-variant">
-            Se le va a enviar un mail a <strong>{email}</strong>{' '}
-            {esVerificar
-              ? 'avisando que su lugar quedó confirmado.'
-              : 'pidiéndole que aclare el pago.'}
-          </p>
-        </div>
+        <label className="flex items-start gap-2.5 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 mb-5 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={notificar}
+            onChange={(e) => setNotificar(e.target.checked)}
+            className="mt-0.5 w-4 h-4 accent-primary cursor-pointer shrink-0"
+          />
+          <span className="font-sans text-xs text-on-surface-variant">
+            <Mail className="w-3.5 h-3.5 inline -mt-0.5 mr-1 text-tertiary" />
+            {notificar ? (
+              <>
+                Avisar por mail a <strong>{email}</strong>{' '}
+                {esVerificar
+                  ? 'de que su lugar quedó confirmado.'
+                  : 'pidiéndole que aclare el pago.'}
+              </>
+            ) : (
+              <>Sólo actualizar el estado acá — no se le manda ningún mail.</>
+            )}
+          </span>
+        </label>
 
         <div className="flex gap-2 justify-end">
           <button
@@ -96,7 +109,7 @@ function ModalConfirmacion({
             Cancelar
           </button>
           <button
-            onClick={onConfirmar}
+            onClick={() => onConfirmar(notificar)}
             disabled={guardando}
             className={`inline-flex items-center gap-1.5 px-5 py-2 rounded-full font-sans text-xs font-semibold text-white transition-opacity cursor-pointer disabled:opacity-50 ${
               esVerificar ? 'bg-status-success hover:opacity-90' : 'bg-red-600 hover:opacity-90'
@@ -129,11 +142,11 @@ function BloquePago({
   const [error, setError] = useState('');
   const [confirmando, setConfirmando] = useState<'verificado' | 'rechazado' | null>(null);
 
-  const cambiarEstado = async (estado: Pago['estado']) => {
+  const cambiarEstado = async (estado: Pago['estado'], notificar = true) => {
     setGuardando(true);
     setError('');
     try {
-      await actualizarPago(pago.id, { estado, pagado_en: fecha || undefined, nota });
+      await actualizarPago(pago.id, { estado, pagado_en: fecha || undefined, nota, notificar });
       onCambio();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No pudimos guardar el cambio.');
@@ -295,7 +308,7 @@ function BloquePago({
           pagoDescripcion={pago.descripcion}
           guardando={guardando}
           onCancelar={() => setConfirmando(null)}
-          onConfirmar={() => cambiarEstado(confirmando)}
+          onConfirmar={(notificar) => cambiarEstado(confirmando, notificar)}
         />
       )}
     </div>
