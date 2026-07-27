@@ -19,9 +19,19 @@ import {
   ShieldAlert,
   Edit3,
   Save,
-  Trash2
+  Trash2,
+  Plus
 } from 'lucide-react';
-import { Inscripcion, Pago, actualizarPago, actualizarInscripcion, borrarInscripcion, urlComprobante } from './api';
+import {
+  Inscripcion,
+  Pago,
+  actualizarPago,
+  actualizarInscripcion,
+  borrarInscripcion,
+  editarPago,
+  agregarPago,
+  urlComprobante
+} from './api';
 import { calcularRecordatorio } from './recordatorios';
 import ModalRecordatorio from './ModalRecordatorio';
 
@@ -143,6 +153,12 @@ function BloquePago({
   const [error, setError] = useState('');
   const [confirmando, setConfirmando] = useState<'verificado' | 'rechazado' | null>(null);
 
+  const [editandoPago, setEditandoPago] = useState(false);
+  const [descripcionEdit, setDescripcionEdit] = useState(pago.descripcion);
+  const [montoEdit, setMontoEdit] = useState(pago.monto?.toString() ?? '');
+  const [guardandoPago, setGuardandoPago] = useState(false);
+  const [errorPago, setErrorPago] = useState('');
+
   const cambiarEstado = async (estado: Pago['estado'], notificar = true) => {
     setGuardando(true);
     setError('');
@@ -154,6 +170,23 @@ function BloquePago({
     } finally {
       setGuardando(false);
       setConfirmando(null);
+    }
+  };
+
+  const guardarEdicionPago = async () => {
+    setGuardandoPago(true);
+    setErrorPago('');
+    try {
+      await editarPago(pago.id, {
+        descripcion: descripcionEdit,
+        monto: montoEdit.trim() ? Number.parseFloat(montoEdit) : null
+      });
+      setEditandoPago(false);
+      onCambio();
+    } catch (err) {
+      setErrorPago(err instanceof Error ? err.message : 'No pudimos guardar el cambio.');
+    } finally {
+      setGuardandoPago(false);
     }
   };
 
@@ -179,19 +212,86 @@ function BloquePago({
               {pago.metodo}
             </span>
           </div>
-          <p className="font-sans text-sm font-semibold text-on-surface mt-1.5">
-            {pago.descripcion}
-          </p>
+          {editandoPago ? (
+            <input
+              type="text"
+              value={descripcionEdit}
+              onChange={(e) => setDescripcionEdit(e.target.value)}
+              className="w-full bg-white border border-outline-variant/40 rounded-lg px-2.5 py-1.5 font-sans text-sm mt-1.5 outline-none focus:border-primary"
+            />
+          ) : (
+            <p className="font-sans text-sm font-semibold text-on-surface mt-1.5">
+              {pago.descripcion}
+            </p>
+          )}
           <p className="font-sans text-xs text-on-surface-variant mt-0.5">
             Reportado el {pago.reportado_en}
             {pago.verificado_en && ` · Verificado el ${pago.verificado_en} por ${pago.verificado_por}`}
           </p>
         </div>
 
-        {pago.monto !== null && (
-          <p className="font-display text-2xl text-primary shrink-0">${pago.monto} AUD</p>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {editandoPago ? (
+            <div className="flex items-center gap-1">
+              <span className="font-sans text-sm text-tertiary">$</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={montoEdit}
+                onChange={(e) => setMontoEdit(e.target.value)}
+                placeholder="Sin monto fijo"
+                className="w-28 bg-white border border-outline-variant/40 rounded-lg px-2 py-1.5 font-sans text-sm outline-none focus:border-primary"
+              />
+            </div>
+          ) : (
+            pago.monto !== null && (
+              <p className="font-display text-2xl text-primary">${pago.monto} AUD</p>
+            )
+          )}
+
+          {editandoPago ? (
+            <div className="flex gap-1">
+              <button
+                onClick={guardarEdicionPago}
+                disabled={guardandoPago}
+                title="Guardar"
+                className="p-1.5 rounded-full bg-primary text-white hover:bg-primary-container transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {guardandoPago ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              </button>
+              <button
+                onClick={() => {
+                  setEditandoPago(false);
+                  setDescripcionEdit(pago.descripcion);
+                  setMontoEdit(pago.monto?.toString() ?? '');
+                  setErrorPago('');
+                }}
+                disabled={guardandoPago}
+                title="Cancelar"
+                className="p-1.5 rounded-full border border-outline-variant text-tertiary hover:border-primary hover:text-primary transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setEditandoPago(true)}
+              title="Editar monto o descripción"
+              className="p-1.5 rounded-full text-tertiary hover:text-primary hover:bg-primary/5 transition-colors cursor-pointer"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
+
+      {errorPago && (
+        <p className="text-red-600 text-xs font-semibold -mt-2 mb-3 flex items-center gap-1.5">
+          <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+          {errorPago}
+        </p>
+      )}
 
       {/* Comprobante */}
       {pago.comprobante_key ? (
@@ -324,6 +424,112 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: string | null | un
         {etiqueta}
       </dt>
       <dd className="font-sans text-sm text-on-surface mt-0.5 break-words">{valor}</dd>
+    </div>
+  );
+}
+
+/** Carga a mano un pago que nunca quedó registrado (venía de otro lado, se anotó por WhatsApp, etc.). */
+function AgregarPago({ inscripcionId, onAgregado }: { inscripcionId: number; onAgregado: () => void }) {
+  const [abierto, setAbierto] = useState(false);
+  const [descripcion, setDescripcion] = useState('');
+  const [monto, setMonto] = useState('');
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState('');
+
+  const guardar = async () => {
+    if (!descripcion.trim()) {
+      setError('Falta describir el pago (ej. "Pago completo", "Primera cuota").');
+      return;
+    }
+    setGuardando(true);
+    setError('');
+    try {
+      await agregarPago(inscripcionId, {
+        descripcion: descripcion.trim(),
+        monto: monto.trim() ? Number.parseFloat(monto) : null
+      });
+      setDescripcion('');
+      setMonto('');
+      setAbierto(false);
+      onAgregado();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No pudimos guardar el pago.');
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  if (!abierto) {
+    return (
+      <button
+        onClick={() => setAbierto(true)}
+        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-dashed border-outline-variant text-tertiary font-sans text-xs font-semibold hover:border-primary hover:text-primary transition-colors cursor-pointer"
+      >
+        <Plus className="w-3.5 h-3.5" />
+        Agregar pago
+      </button>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-dashed border-outline-variant/60 p-4 space-y-3">
+      <div className="flex flex-wrap gap-3">
+        <div className="flex-grow min-w-[200px]">
+          <label className="block font-sans text-[11px] font-semibold text-tertiary mb-1">
+            Descripción
+          </label>
+          <input
+            type="text"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder='Ej. "Pago completo", "Segunda cuota"'
+            className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary"
+          />
+        </div>
+        <div>
+          <label className="block font-sans text-[11px] font-semibold text-tertiary mb-1">Monto</label>
+          <div className="flex items-center gap-1">
+            <span className="font-sans text-sm text-tertiary">$</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+              placeholder="Sin monto fijo"
+              className="w-32 bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary"
+            />
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <p className="text-red-600 text-xs font-semibold flex items-center gap-1.5">
+          <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+          {error}
+        </p>
+      )}
+
+      <div className="flex gap-2 justify-end">
+        <button
+          onClick={() => {
+            setAbierto(false);
+            setError('');
+          }}
+          disabled={guardando}
+          className="px-4 py-2 rounded-full font-sans text-xs font-semibold text-tertiary hover:bg-surface-container-low transition-colors cursor-pointer disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={guardar}
+          disabled={guardando}
+          className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-primary text-white font-sans text-xs font-semibold hover:bg-primary-container transition-colors cursor-pointer disabled:opacity-50"
+        >
+          {guardando && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+          Guardar pago
+        </button>
+      </div>
     </div>
   );
 }
@@ -821,6 +1027,9 @@ export function DetalleInscripcion({
                   />
                 ))
               )}
+            </div>
+            <div className="mt-3">
+              <AgregarPago inscripcionId={inscripcion.id} onAgregado={onCambio} />
             </div>
           </section>
 

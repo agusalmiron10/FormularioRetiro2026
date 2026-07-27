@@ -115,6 +115,26 @@ export const actualizarPago = (
     body: JSON.stringify(cambios)
   });
 
+export const editarPago = (
+  id: number,
+  cambios: { descripcion?: string; monto?: number | null; tipo?: string }
+) =>
+  pedir<Record<string, never>>(`/api/admin/pagos/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(cambios)
+  });
+
+export const agregarPago = (
+  inscripcionId: number,
+  datos: { descripcion: string; monto: number | null; tipo?: string }
+) =>
+  pedir<Record<string, never>>(`/api/admin/inscripciones/${inscripcionId}/pagos`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(datos)
+  });
+
 export const actualizarInscripcion = (
   id: number,
   cambios: Partial<Inscripcion>
