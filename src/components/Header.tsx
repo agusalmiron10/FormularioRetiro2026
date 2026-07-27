@@ -4,8 +4,9 @@
  */
 
 import { useState } from 'react';
-import { Leaf, Menu, X } from 'lucide-react';
+import { Leaf, Menu, X, Globe } from 'lucide-react';
 import { RegistrationStep } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HeaderProps {
   currentStep: RegistrationStep;
@@ -14,6 +15,7 @@ interface HeaderProps {
 
 export default function Header({ currentStep, onNavigate }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { lang, setLang } = useLanguage();
 
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-white border-b border-primary/5 shadow-sm shadow-primary/5 h-20 flex items-center justify-center px-6">
@@ -54,6 +56,16 @@ export default function Header({ currentStep, onNavigate }: HeaderProps) {
           className="px-6 py-2.5 bg-primary hover:bg-primary-container text-white hover:text-on-primary-container rounded-full font-sans text-sm font-semibold tracking-wide shadow-sm hover:shadow-primary/20 transition-all duration-300 cursor-pointer"
         >
           Comenzar registro
+        </button>
+
+        {/* Language Toggle */}
+        <button
+          onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+          className="flex items-center gap-2 px-3 py-1.5 bg-secondary/10 hover:bg-secondary/20 text-secondary rounded-full font-sans text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+          title="Change language / Cambiar idioma"
+        >
+          <Globe className="w-4 h-4" />
+          {lang === 'es' ? '🇪🇸 ES' : '🇦🇺 EN'}
         </button>
       </nav>
 
@@ -112,6 +124,19 @@ export default function Header({ currentStep, onNavigate }: HeaderProps) {
             >
               Comenzar registro
             </button>
+            
+            <div className="mt-4 pt-4 border-t border-primary/5">
+              <button
+                onClick={() => {
+                  setLang(lang === 'es' ? 'en' : 'es');
+                  setIsMenuOpen(false);
+                }}
+                className="flex items-center gap-3 px-4 py-3 w-full text-left font-sans text-base font-semibold text-primary/80 hover:text-primary transition-colors cursor-pointer"
+              >
+                <Globe className="w-5 h-5 text-secondary" />
+                {lang === 'es' ? 'Switch to English (EN)' : 'Cambiar a Español (ES)'}
+              </button>
+            </div>
           </nav>
         </div>
       )}

@@ -152,3 +152,33 @@ export const onRequestGet: PagesFunction<AdminEnv> = async ({ request, env }) =>
     return json({ ok: false, error: 'No pudimos leer las inscripciones.' }, 500);
   }
 };
+
+export const onRequestPost: PagesFunction<AdminEnv> = async ({ request, env }) => {
+  const rechazo = requireAdmin(request, env);
+  if (rechazo) return rechazo;
+
+  try {
+    const data = await request.json<any>();
+    if (!data.nombre_completo) {
+      return json({ ok: false, error: 'El nombre es obligatorio' }, 400);
+    }
+
+    const { results } = await env.DB.prepare(
+      `INSERT INTO inscripciones (
+        nombre_completo, email, telefono, direccion, fecha_nacimiento,
+        contacto_emergencia_nombre, contacto_emergencia_telefono, idioma,
+        origen_viaje, dieta, dieta_otro, apoyo_otras_mujeres, condicion_medica,
+        preferencia_habitacion, transporte, oracion, expectativas, expectativas_otro,
+        como_se_entero, comentarios
+      ) VALUES (?, ?, ?, '', '', '', '', '', '', '[]', '', '', '', '', '', '', '[]', '', '', '')
+      RETURNING id`
+    )
+      .bind(data.nombre_completo, data.email || '', data.telefono || '')
+      .all();
+
+    return json({ ok: true, id: results[0].id }, 200);
+  } catch (err) {
+    console.error('Error creando inscripción manual', err);
+    return json({ ok: false, error: 'Fallo al crear la inscripción' }, 500);
+  }
+};

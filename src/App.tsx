@@ -17,6 +17,7 @@ import Step5Finalize from './components/Step5Finalize';
 import SuccessScreen from './components/SuccessScreen';
 import { RegistrationData, RegistrationStep } from './types';
 import { INITIAL_REGISTRATION_DATA, IMAGE_URLS } from './data';
+import { LanguageProvider } from './context/LanguageContext';
 
 export default function App() {
   const [step, setStep] = useState<RegistrationStep>('landing');
@@ -167,9 +168,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans text-on-surface bg-[#FCF9F2] selection:bg-sage-light/30">
-      {/* Persistent Header */}
-      <Header currentStep={step} onNavigate={setStep} />
+    <LanguageProvider>
+      <div className="min-h-screen flex flex-col font-sans text-on-surface bg-[#FCF9F2] selection:bg-sage-light/30">
+        {/* Persistent Header */}
+        <Header currentStep={step} onNavigate={setStep} />
 
       {/* Main Container */}
       <main className="flex-grow pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto w-full">
@@ -321,6 +323,7 @@ export default function App() {
 
       {/* Persistent Footer */}
       <Footer />
-    </div>
+      </div>
+    </LanguageProvider>
   );
 }

@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Shield, Sparkles, Check, Bookmark } from 'lucide-react';
 import { RegistrationData } from '../types';
 import { motion } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Step1Props {
   data: RegistrationData;
@@ -24,26 +25,27 @@ export default function Step1PersonalInfo({
   onSaveDraft,
   draftSaved
 }: Step1Props) {
+  const { t } = useLanguage();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!data.fullName.trim()) newErrors.fullName = 'El nombre y apellido es obligatorio.';
-    if (!data.phone.trim()) newErrors.phone = 'El teléfono de contacto es obligatorio.';
+    if (!data.fullName.trim()) newErrors.fullName = t('error.required');
+    if (!data.phone.trim()) newErrors.phone = t('error.required');
     
     // Email regex
     if (!data.email.trim()) {
-      newErrors.email = 'El correo electrónico es obligatorio.';
+      newErrors.email = t('error.required');
     } else if (!/\S+@\S+\.\S+/.test(data.email)) {
-      newErrors.email = 'Introduce un correo electrónico válido.';
+      newErrors.email = t('error.email');
     }
 
-    if (!data.address.trim()) newErrors.address = 'La dirección completa es obligatoria.';
-    if (!data.birthDate) newErrors.birthDate = 'La fecha de nacimiento es obligatoria.';
-    if (!data.age || parseInt(data.age) <= 0) newErrors.age = 'Introduce una edad válida.';
+    if (!data.address.trim()) newErrors.address = t('error.required');
+    if (!data.birthDate) newErrors.birthDate = t('error.required');
+    if (!data.age || parseInt(data.age) <= 0) newErrors.age = t('error.age');
     
-    if (!data.emergencyName.trim()) newErrors.emergencyName = 'El nombre del contacto de emergencia es obligatorio.';
-    if (!data.emergencyPhone.trim()) newErrors.emergencyPhone = 'El teléfono de emergencia es obligatorio.';
+    if (!data.emergencyName.trim()) newErrors.emergencyName = t('error.required');
+    if (!data.emergencyPhone.trim()) newErrors.emergencyPhone = t('error.required');
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -66,8 +68,8 @@ export default function Step1PersonalInfo({
       {/* Progress Header */}
       <div className="mb-10">
         <div className="flex justify-between items-end mb-2">
-          <span className="font-sans text-xs font-bold text-primary uppercase tracking-widest">Paso 1 de 5</span>
-          <span className="font-sans text-xs font-semibold text-on-surface-variant">Información Personal</span>
+          <span className="font-sans text-xs font-bold text-primary uppercase tracking-widest">{t('form.step').replace('{0}', '1')}</span>
+          <span className="font-sans text-xs font-semibold text-on-surface-variant">{t('step1.badge')}</span>
         </div>
         <div className="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
           <div className="h-full bg-primary w-1/5 transition-all duration-700 ease-out"></div>
@@ -76,9 +78,9 @@ export default function Step1PersonalInfo({
 
       {/* Title */}
       <div className="mb-10 text-left">
-        <h2 className="font-display text-4xl text-primary mb-3">Cuéntanos sobre ti</h2>
+        <h2 className="font-display text-4xl text-primary mb-3">{t('step1.title')}</h2>
         <p className="font-sans text-sm text-tertiary leading-relaxed">
-          Tu viaje de renovación comienza aquí. Por favor, completa tus datos para asegurar tu lugar en el retiro.
+          {t('step1.subtitle')}
         </p>
       </div>
 
@@ -88,12 +90,12 @@ export default function Step1PersonalInfo({
           
           {/* Full Name */}
           <div className="sm:col-span-2">
-            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">Nombre y Apellidos</label>
+            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">{t('step1.name')}</label>
             <input 
               type="text" 
               value={data.fullName}
               onChange={(e) => onChange({ fullName: e.target.value })}
-              placeholder="Tu nombre completo"
+              placeholder={t('step1.name.ph')}
               className="soft-input font-sans text-sm"
             />
             {errors.fullName && <p className="text-red-600 text-xs mt-1">{errors.fullName}</p>}
@@ -101,12 +103,12 @@ export default function Step1PersonalInfo({
 
           {/* Phone */}
           <div>
-            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">Número de teléfono</label>
+            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">{t('step1.phone')}</label>
             <input 
               type="tel" 
               value={data.phone}
               onChange={(e) => onChange({ phone: e.target.value })}
-              placeholder="+34 000 000 000"
+              placeholder={t('step1.phone.ph')}
               className="soft-input font-sans text-sm"
             />
             {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone}</p>}
@@ -114,12 +116,12 @@ export default function Step1PersonalInfo({
 
           {/* Email */}
           <div>
-            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">Email</label>
+            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">{t('step1.email')}</label>
             <input 
               type="email" 
               value={data.email}
               onChange={(e) => onChange({ email: e.target.value })}
-              placeholder="correo@ejemplo.com"
+              placeholder={t('step1.email.ph')}
               className="soft-input font-sans text-sm"
             />
             {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
@@ -127,12 +129,12 @@ export default function Step1PersonalInfo({
 
           {/* Address */}
           <div className="sm:col-span-2">
-            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">Dirección</label>
+            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">{t('step1.address')}</label>
             <input 
               type="text" 
               value={data.address}
               onChange={(e) => onChange({ address: e.target.value })}
-              placeholder="Calle, número, ciudad y código postal"
+              placeholder={t('step1.address.ph')}
               className="soft-input font-sans text-sm"
             />
             {errors.address && <p className="text-red-600 text-xs mt-1">{errors.address}</p>}
@@ -140,7 +142,7 @@ export default function Step1PersonalInfo({
 
           {/* Birth date */}
           <div>
-            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">Fecha de nacimiento</label>
+            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">{t('step1.dob')}</label>
             <input 
               type="date" 
               value={data.birthDate}
@@ -152,12 +154,12 @@ export default function Step1PersonalInfo({
 
           {/* Age */}
           <div>
-            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">Edad</label>
+            <label className="font-sans text-xs font-semibold text-tertiary block mb-1">{t('step1.age')}</label>
             <input 
               type="number" 
               value={data.age}
               onChange={(e) => onChange({ age: e.target.value })}
-              placeholder="Ej. 35"
+              placeholder={t('step1.age.ph')}
               className="soft-input font-sans text-sm"
             />
             {errors.age && <p className="text-red-600 text-xs mt-1">{errors.age}</p>}
@@ -176,27 +178,27 @@ export default function Step1PersonalInfo({
         <div className="bg-surface-container-low p-6 md:p-8 rounded-2xl border border-primary/5">
           <h3 className="font-sans text-sm font-bold text-primary mb-6 flex items-center gap-2">
             <Shield className="w-5 h-5 text-secondary" />
-            Contacto de Emergencia
+            {t('step1.emergency')}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="font-sans text-xs font-semibold text-tertiary block mb-1">Nombre del contacto</label>
+              <label className="font-sans text-xs font-semibold text-tertiary block mb-1">{t('step1.emergencyName')}</label>
               <input 
                 type="text" 
                 value={data.emergencyName}
                 onChange={(e) => onChange({ emergencyName: e.target.value })}
-                placeholder="Nombre completo"
+                placeholder={t('step1.emergencyName.ph')}
                 className="soft-input font-sans text-sm bg-white/70"
               />
               {errors.emergencyName && <p className="text-red-600 text-xs mt-1">{errors.emergencyName}</p>}
             </div>
             <div>
-              <label className="font-sans text-xs font-semibold text-tertiary block mb-1">Teléfono de emergencia</label>
+              <label className="font-sans text-xs font-semibold text-tertiary block mb-1">{t('step1.emergencyPhone')}</label>
               <input 
                 type="tel" 
                 value={data.emergencyPhone}
                 onChange={(e) => onChange({ emergencyPhone: e.target.value })}
-                placeholder="+34 000 000 000"
+                placeholder={t('step1.emergencyPhone.ph')}
                 className="soft-input font-sans text-sm bg-white/70"
               />
               {errors.emergencyPhone && <p className="text-red-600 text-xs mt-1">{errors.emergencyPhone}</p>}
@@ -214,12 +216,12 @@ export default function Step1PersonalInfo({
             {draftSaved ? (
               <>
                 <Check className="w-4 h-4 text-secondary" />
-                Borrador guardado
+                {t('status.saved')}
               </>
             ) : (
               <>
                 <Bookmark className="w-4 h-4 text-secondary" />
-                Guardar Borrador
+                {t('form.save')}
               </>
             )}
           </button>
@@ -227,7 +229,7 @@ export default function Step1PersonalInfo({
             type="submit"
             className="w-full sm:w-auto px-8 py-4 rounded-full bg-primary text-white font-sans text-sm font-semibold hover:bg-primary-container hover:text-on-primary-container transition-all duration-300 shadow-md shadow-primary/15 cursor-pointer"
           >
-            Siguiente Paso
+            {t('form.next')}
           </button>
         </div>
       </form>

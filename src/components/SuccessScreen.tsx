@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { Check, Camera, MessageCircle, RefreshCw } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface SuccessScreenProps {
   fullName: string;
@@ -20,6 +21,7 @@ export default function SuccessScreen({
   registrationNumber,
   onReset
 }: SuccessScreenProps) {
+  const { t } = useLanguage();
   const firstName = fullName ? fullName.split(' ')[0] : 'Hermana';
 
   // 🎉 Confetti al montar — multi-burst con colores del branding
@@ -106,7 +108,7 @@ export default function SuccessScreen({
         transition={{ delay: 0.2 }}
         className="font-display text-4xl md:text-5xl text-primary mb-4"
       >
-        ¡Registro Exitoso!
+        {t('success.title')}
       </motion.h1>
 
       {/* Description */}
@@ -116,7 +118,8 @@ export default function SuccessScreen({
         transition={{ delay: 0.35 }}
         className="font-sans text-sm md:text-base text-on-surface-variant max-w-lg mx-auto mb-10 leading-relaxed"
       >
-        ¡Gracias por registrarte, <strong>{firstName}</strong>! Recibimos tu inscripción y tu comprobante de pago. Nuestro equipo verificará la transferencia y te enviaremos un correo confirmando tu lugar en <strong>Renueva 2026</strong>. Nos vemos del 11 al 13 de septiembre en Wisemans Retreat.
+        {t('success.subtitle')} <br /><br />
+        {t('success.email')}
       </motion.p>
 
       {registrationNumber !== null && (
@@ -151,22 +154,22 @@ export default function SuccessScreen({
         >
           <Camera className="w-6 h-6 text-secondary group-hover:scale-110 transition-transform duration-300" />
           <div>
-            <p className="font-sans text-xs font-semibold text-on-surface">Instagram</p>
-            <p className="font-sans text-[11px] text-on-surface-variant mt-0.5">Seguí @alegria_retreats</p>
+            <p className="font-sans text-xs font-semibold text-on-surface">{t('success.ig')}</p>
+            <p className="font-sans text-[11px] text-on-surface-variant mt-0.5">@alegria_retreats</p>
           </div>
         </a>
 
         {/* WhatsApp Card */}
         <a 
-          href="https://whatsapp.com" 
+          href="https://chat.whatsapp.com/IZ1vaII9br71hM7KoKQd7K" 
           target="_blank" 
           rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-3 p-5 border border-outline-variant/50 hover:border-primary/40 rounded-2xl hover:bg-surface-container-low transition-all duration-300 group text-left cursor-pointer focus:outline-none"
         >
           <MessageCircle className="w-6 h-6 text-status-success group-hover:scale-110 transition-transform duration-300" />
           <div>
-            <p className="font-sans text-xs font-semibold text-on-surface">Comunidad WhatsApp</p>
-            <p className="font-sans text-[11px] text-on-surface-variant mt-0.5">Únete al grupo de oración</p>
+            <p className="font-sans text-xs font-semibold text-on-surface">{t('success.whatsapp')}</p>
+            <p className="font-sans text-[11px] text-on-surface-variant mt-0.5">{t('success.whatsapp.desc')}</p>
           </div>
         </a>
       </motion.div>

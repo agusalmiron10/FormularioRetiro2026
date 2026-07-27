@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import type { MouseEvent } from 'react';
 import {
   ChevronDown,
   Check,
@@ -14,9 +15,17 @@ import {
   Undo2,
   HeartPulse,
   Mail,
-  ShieldAlert
+  MessageCircle,
+  ShieldAlert,
+  Edit3,
+  Save,
+  Trash2
 } from 'lucide-react';
-import { Inscripcion, Pago, actualizarPago, urlComprobante } from './api';
+import { Inscripcion, Pago, actualizarPago, actualizarInscripcion, borrarInscripcion, urlComprobante } from './api';
+import { calcularRecordatorio, urlWhatsapp } from './recordatorios';
+
+const VERDE_WHATSAPP = '#25D366';
+const VERDE_WHATSAPP_TEXTO = '#128C4A';
 
 const ESTILO_ESTADO: Record<Pago['estado'], string> = {
   verificado: 'bg-status-success/15 text-status-success',
@@ -305,6 +314,104 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: string | null | un
   );
 }
 
+function ModalEdicion({
+  inscripcion,
+  onCancelar,
+  onGuardar
+}: {
+  inscripcion: Inscripcion;
+  onCancelar: () => void;
+  onGuardar: () => void;
+}) {
+  const [datos, setDatos] = useState<Partial<Inscripcion>>({
+    nombre_completo: inscripcion.nombre_completo,
+    email: inscripcion.email,
+    telefono: inscripcion.telefono,
+    direccion: inscripcion.direccion,
+    condicion_medica: inscripcion.condicion_medica || '',
+    comentarios: inscripcion.comentarios || '',
+  });
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState('');
+
+  const guardar = async () => {
+    setGuardando(true);
+    setError('');
+    try {
+      await actualizarInscripcion(inscripcion.id, datos);
+      onGuardar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al guardar');
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const handleChange = (campo: keyof Inscripcion, valor: string) => {
+    setDatos((prev) => ({ ...prev, [campo]: valor }));
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onCancelar}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg bg-white rounded-2xl border border-outline-variant/20 p-6 shadow-xl max-h-[90vh] overflow-y-auto"
+      >
+        <h3 className="font-display text-xl text-primary mb-4 flex items-center gap-2">
+          <Edit3 className="w-5 h-5 text-secondary" />
+          Editar Inscripción #{inscripcion.id}
+        </h3>
+
+        <div className="space-y-4 mb-6">
+          <div>
+            <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Nombre completo</label>
+            <input type="text" value={datos.nombre_completo} onChange={(e) => handleChange('nombre_completo', e.target.value)} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Email</label>
+              <input type="email" value={datos.email} onChange={(e) => handleChange('email', e.target.value)} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary" />
+            </div>
+            <div>
+              <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Teléfono</label>
+              <input type="text" value={datos.telefono} onChange={(e) => handleChange('telefono', e.target.value)} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary" />
+            </div>
+          </div>
+          <div>
+            <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Dirección</label>
+            <input type="text" value={datos.direccion} onChange={(e) => handleChange('direccion', e.target.value)} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary" />
+          </div>
+          <div>
+            <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Condición Médica</label>
+            <input type="text" value={datos.condicion_medica || ''} onChange={(e) => handleChange('condicion_medica', e.target.value)} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary" />
+          </div>
+          <div>
+            <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Comentarios</label>
+            <textarea value={datos.comentarios || ''} onChange={(e) => handleChange('comentarios', e.target.value)} rows={3} className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2 font-sans text-sm outline-none focus:border-primary resize-none" />
+          </div>
+        </div>
+
+        {error && (
+          <p className="text-red-600 text-xs font-semibold mb-4 flex items-start gap-1.5 bg-red-50 px-3 py-2.5 rounded-lg border border-red-100">
+            <ShieldAlert className="w-4 h-4 shrink-0 mt-px" />
+            {error}
+          </p>
+        )}
+
+        <div className="flex gap-2 justify-end pt-4 border-t border-outline-variant/20">
+          <button onClick={onCancelar} disabled={guardando} className="px-4 py-2 rounded-full font-sans text-xs font-semibold text-tertiary hover:bg-surface-container-low transition-colors cursor-pointer disabled:opacity-50">
+            Cancelar
+          </button>
+          <button onClick={guardar} disabled={guardando} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-primary text-white font-sans text-xs font-semibold hover:bg-primary-container hover:text-on-primary-container transition-colors cursor-pointer disabled:opacity-50">
+            {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            Guardar cambios
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function FichaInscripcion({
   inscripcion,
   onCambio
@@ -314,9 +421,36 @@ export default function FichaInscripcion({
   key?: number;
 }) {
   const [abierta, setAbierta] = useState(false);
+  const [editando, setEditando] = useState(false);
+  const [borrando, setBorrando] = useState(false);
+  const recordatorio = calcularRecordatorio(inscripcion);
+
+  const enviarWhatsapp = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (!recordatorio?.telefono) return;
+    window.open(
+      urlWhatsapp(recordatorio.telefono, recordatorio.mensaje),
+      '_blank',
+      'noopener,noreferrer'
+    );
+  };
+
+  const handleBorrar = async () => {
+    if (!window.confirm(`¿Estás segura de que querés borrar a ${inscripcion.nombre_completo}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    setBorrando(true);
+    try {
+      await borrarInscripcion(inscripcion.id);
+      onCambio();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Error al borrar');
+      setBorrando(false);
+    }
+  };
 
   return (
-    <article className="bg-white rounded-2xl border border-outline-variant/20 overflow-hidden">
+    <article className={`bg-white rounded-2xl border border-outline-variant/20 overflow-hidden ${borrando ? 'opacity-50 pointer-events-none' : ''}`}>
       <button
         onClick={() => setAbierta(!abierta)}
         className="w-full flex items-center justify-between gap-4 p-5 text-left hover:bg-surface-container-low transition-colors cursor-pointer"
@@ -332,6 +466,14 @@ export default function FichaInscripcion({
             {inscripcion.tiene_pendientes && (
               <span className="px-2 py-0.5 rounded-full bg-accent-gold/20 text-[#8A6A00] font-sans text-[10px] font-bold uppercase tracking-wider">
                 Por verificar
+              </span>
+            )}
+            {recordatorio && (
+              <span
+                className="px-2 py-0.5 rounded-full font-sans text-[10px] font-bold uppercase tracking-wider"
+                style={{ backgroundColor: `${VERDE_WHATSAPP}26`, color: VERDE_WHATSAPP_TEXTO }}
+              >
+                Debe{recordatorio.monto ? ` $${recordatorio.monto}` : ''}
               </span>
             )}
             {inscripcion.condicion_medica &&
@@ -350,7 +492,17 @@ export default function FichaInscripcion({
           </p>
         </div>
 
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
+          {recordatorio?.telefono && (
+            <button
+              onClick={enviarWhatsapp}
+              title="Recordar por WhatsApp"
+              className="p-2 rounded-full transition-colors cursor-pointer"
+              style={{ backgroundColor: `${VERDE_WHATSAPP}1A`, color: VERDE_WHATSAPP_TEXTO }}
+            >
+              <MessageCircle className="w-4 h-4" />
+            </button>
+          )}
           <div className="text-right">
             <p className="font-display text-xl text-primary leading-none">
               ${inscripcion.total_verificado}
@@ -391,9 +543,28 @@ export default function FichaInscripcion({
           </section>
 
           <section>
-            <h3 className="font-sans text-xs font-bold text-secondary uppercase tracking-wider mb-3">
-              Datos de la inscripción
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-sans text-xs font-bold text-secondary uppercase tracking-wider">
+                Datos de la inscripción
+              </h3>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setEditando(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-tertiary font-sans text-xs font-semibold hover:border-primary hover:text-primary transition-colors cursor-pointer"
+                >
+                  <Edit3 className="w-3 h-3" />
+                  Editar
+                </button>
+                <button 
+                  onClick={handleBorrar}
+                  disabled={borrando}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-red-200 text-red-600 font-sans text-xs font-semibold hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
+                  title="Borrar inscripción"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Dato etiqueta="Teléfono" valor={inscripcion.telefono} />
               <Dato etiqueta="Email" valor={inscripcion.email} />
@@ -469,6 +640,17 @@ export default function FichaInscripcion({
             )}
           </section>
         </div>
+      )}
+
+      {editando && (
+        <ModalEdicion
+          inscripcion={inscripcion}
+          onCancelar={() => setEditando(false)}
+          onGuardar={() => {
+            setEditando(false);
+            onCambio();
+          }}
+        />
       )}
     </article>
   );

@@ -4,10 +4,11 @@
  */
 
 import React from 'react';
-import { Calendar, ArrowRight, MapPin, Heart, ChevronDown } from 'lucide-react';
+import { ArrowRight, MapPin, Heart, ChevronDown } from 'lucide-react';
 import { motion } from 'motion/react';
 import { IMAGE_URLS } from '../data';
 import { RegistrationStep } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 interface LandingPageProps {
   onStartRegistration: () => void;
@@ -15,6 +16,8 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onStartRegistration }: LandingPageProps) {
+  const { t } = useLanguage();
+
   const scrollToDetails = () => {
     const el = document.getElementById('detalles');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -47,7 +50,7 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
               onClick={onStartRegistration}
               className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-primary-container text-white hover:text-on-primary-container rounded-full font-sans font-medium shadow-lg hover:shadow-primary/20 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
             >
-              Comenzar registro
+              {t('landing.start')}
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -74,13 +77,13 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
             {/* Text Info (Left column) */}
             <div className="lg:col-span-5 space-y-6">
               <span className="font-sans text-xs font-semibold tracking-widest text-secondary uppercase block">
-                La Experiencia
+                {t('landing.details.badge')}
               </span>
               <h3 className="font-display text-4xl md:text-5xl text-primary leading-tight">
-                Un santuario de paz en Wisemans Retreat
+                {t('landing.details.title')}
               </h3>
               <p className="font-sans text-sm md:text-base text-on-surface-variant leading-relaxed">
-                Ubicado a orillas del majestuoso río Hawkesbury, Wisemans Retreat ofrece el escenario perfecto para desconectarse del ruido cotidiano. Durante tres días, nos sumergiremos en tiempos de enseñanza, sesiones de oración y ministración, y caminatas restauradoras bajo el dosel del bosque.
+                {t('landing.details.desc')}
               </p>
 
               <div className="space-y-4 pt-4 border-t border-primary/10">
@@ -89,8 +92,8 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-sans text-sm font-semibold text-on-surface">Wisemans Ferry, NSW</p>
-                    <p className="font-sans text-xs text-on-surface-variant italic mt-0.5">Ubicación privilegiada junto al río</p>
+                    <p className="font-sans text-sm font-semibold text-on-surface">{t('landing.details.location')}</p>
+                    <p className="font-sans text-xs text-on-surface-variant italic mt-0.5">{t('landing.details.location.sub')}</p>
                   </div>
                 </div>
 
@@ -99,8 +102,8 @@ export default function LandingPage({ onStartRegistration }: LandingPageProps) {
                     <Heart className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-sans text-sm font-semibold text-on-surface">Cuidado Integral</p>
-                    <p className="font-sans text-xs text-on-surface-variant italic mt-0.5">Cuerpo, mente y espíritu en armonía</p>
+                    <p className="font-sans text-sm font-semibold text-on-surface">{t('landing.details.care')}</p>
+                    <p className="font-sans text-xs text-on-surface-variant italic mt-0.5">{t('landing.details.care.sub')}</p>
                   </div>
                 </div>
               </div>

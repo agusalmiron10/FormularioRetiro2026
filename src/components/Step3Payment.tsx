@@ -27,6 +27,7 @@ import {
 } from '../data';
 import { Question, RadioOption, StepProgress } from './FormControls';
 import { motion } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Step3Props {
   data: RegistrationData;
@@ -44,6 +45,7 @@ const GROUP_LABELS: Record<string, string> = {
 };
 
 export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Props) {
+  const { t } = useLanguage();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [copied, setCopied] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
@@ -173,13 +175,12 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
       exit={{ opacity: 0, y: -15 }}
       className="max-w-3xl mx-auto text-left"
     >
-      <StepProgress step={3} label="Registro y Pago" />
+      <StepProgress step={3} label={t('step3.badge')} />
 
       <div className="mb-8">
-        <h1 className="font-display text-4xl text-primary mb-2">Detalles de Registro y Pago</h1>
+        <h1 className="font-display text-4xl text-primary mb-2">{t('step3.title')}</h1>
         <p className="font-sans text-sm text-on-surface-variant">
-          Tu lugar queda reservado una vez recibido el pago. Completá los datos y adjuntá el
-          comprobante de tu transferencia.
+          {t('step3.subtitle')}
         </p>
       </div>
 
@@ -192,7 +193,7 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
           {INCLUSIONS.map((item) => (
             <li key={item} className="flex items-start gap-2.5 font-sans text-sm text-on-surface-variant">
               <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
-              {item}
+              {t(item)}
             </li>
           ))}
         </ul>
@@ -223,7 +224,7 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
                   value={option}
                   checked={data.sponsorship === option}
                   onSelect={(value) => onChange({ sponsorship: value })}
-                  label={option}
+                  label={t(option)}
                 />
               ))}
             </div>
@@ -240,7 +241,7 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
               {(['anticipado', 'regular', 'voluntaria', 'donacion'] as const).map((group) => (
                 <div key={group}>
                   <h3 className="font-sans text-[11px] font-bold text-tertiary uppercase tracking-wider mb-2.5">
-                    {GROUP_LABELS[group]}
+                    {t(GROUP_LABELS[group])}
                   </h3>
                   <div className="space-y-3">
                     {PAYMENT_OPTIONS.filter((o) => o.group === group).map((option) => (
@@ -250,7 +251,7 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
                         value={option.id}
                         checked={data.paymentOption === option.id}
                         onSelect={(value) => onChange({ paymentOption: value })}
-                        label={option.label}
+                        label={t(option.label)}
                       />
                     ))}
                   </div>
@@ -267,7 +268,7 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
             <div className="w-full">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h2 className="font-sans text-xs font-bold text-tertiary uppercase tracking-wide">
-                  Detalles de Transferencia Bancaria
+                  {t('step3.bank')}
                 </h2>
                 <button
                   type="button"
@@ -279,9 +280,9 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
                   }`}
                 >
                   {copiedAll ? (
-                    <><Check className="w-3.5 h-3.5" /> ¡Copiado!</>
+                    <><Check className="w-3.5 h-3.5" /> {t('step3.copied')}</>
                   ) : (
-                    <><Copy className="w-3.5 h-3.5" /> Copiar todo</>
+                    <><Copy className="w-3.5 h-3.5" /> {t('step3.copyAll')}</>
                   )}
                 </button>
               </div>
@@ -329,15 +330,14 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
           }`}
         >
           <Question
-            title="Comprobante de pago"
+            title={t('step3.upload')}
             description={
               <>
                 <p>
-                  Adjuntá la <strong>captura de pantalla o el PDF de tu transferencia</strong>. Este
-                  paso es obligatorio: sin el comprobante no podemos confirmar tu reserva.
+                  {t('step3.upload.desc')}
                 </p>
                 <p className="mt-1">
-                  Formatos aceptados: JPG, PNG, WEBP o PDF · Máximo {PROOF_RULES.maxSizeMB} MB.
+                  {t('step3.upload.help')}
                 </p>
               </>
             }
@@ -361,7 +361,7 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
                   <div className="min-w-0 flex-grow">
                     <p className="font-sans text-xs font-bold text-status-success uppercase tracking-wider flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5" />
-                      Comprobante adjuntado
+                      {t('step3.uploaded')}
                     </p>
                     <p className="font-sans text-sm text-on-surface font-semibold mt-1 truncate">
                       {data.paymentProof.name}

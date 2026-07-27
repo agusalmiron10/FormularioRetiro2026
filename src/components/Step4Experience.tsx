@@ -14,6 +14,7 @@ import {
 } from '../data';
 import { Question, RadioOption, CheckOption, StepProgress } from './FormControls';
 import { motion } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Step4Props {
   data: RegistrationData;
@@ -24,6 +25,7 @@ interface Step4Props {
 }
 
 export default function Step4Experience({ data, onChange, onNext, onBack }: Step4Props) {
+  const { t } = useLanguage();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const toggleExpectation = (option: string) => {
@@ -83,7 +85,7 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
       exit={{ opacity: 0, y: -15 }}
       className="max-w-3xl mx-auto text-left"
     >
-      <StepProgress step={4} label="Tu Experiencia en el Retiro" />
+      <StepProgress step={4} label={t('step4.badge')} />
 
       <form onSubmit={handleNext} className="space-y-8">
         {/* Q15 — Condición médica y habitación */}
@@ -92,11 +94,11 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
           className="bg-white p-6 md:p-8 rounded-2xl border border-primary/5 shadow-sm space-y-8"
         >
           <Question
-            title="¿Tenés algún requisito o condición médica que debamos tener en cuenta?"
+            title={t('step4.medical')}
             description={
               <span className="flex items-start gap-2">
                 <HeartPulse className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-                Esta información es confidencial y nos permite acompañarte mejor durante el retiro.
+                {t('step4.medical.desc')}
               </span>
             }
             error={errors.medicalNotes}
@@ -105,19 +107,18 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
               value={data.medicalNotes}
               onChange={(e) => onChange({ medicalNotes: e.target.value })}
               rows={4}
-              placeholder="Ej. medicación, movilidad reducida, alergias, condiciones a tener en cuenta... (si no tenés ninguna, escribí «Ninguna»)"
+              placeholder={t('step4.medical.ph')}
               className="soft-input font-sans text-sm resize-none rounded-t-md"
             />
           </Question>
 
           <Question
-            title="¿Preferís compartir habitación con alguna amiga o familiar que asista al retiro?"
+            title={t('step4.roommate')}
             required={false}
             description={
               <span className="flex items-start gap-2">
                 <Bed className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-                Las habitaciones son compartidas (2 personas por habitación). Haremos lo posible por
-                respetar tu preferencia según disponibilidad.
+                {t('step4.roommate.desc')}
               </span>
             }
           >
@@ -125,7 +126,7 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
               type="text"
               value={data.roommatePreference}
               onChange={(e) => onChange({ roommatePreference: e.target.value })}
-              placeholder="Nombre y apellido de la persona (opcional)"
+              placeholder={t('step4.roommate.ph')}
               className="soft-input font-sans text-sm"
             />
           </Question>
@@ -137,14 +138,7 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
           className="bg-white p-6 md:p-8 rounded-2xl border border-primary/5 shadow-sm"
         >
           <Question
-            title="Transporte al retiro"
-            description={
-              <span className="flex items-start gap-2">
-                <Car className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-                El retiro se realizará en un lugar al que no llega transporte público directo. Por
-                favor, seleccioná una opción.
-              </span>
-            }
+            title={t('step4.transport')}
             error={errors.transport}
           >
             <div className="space-y-3">
@@ -155,7 +149,7 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
                   value={option}
                   checked={data.transport === option}
                   onSelect={(value) => onChange({ transport: value })}
-                  label={option}
+                  label={t(option)}
                 />
               ))}
             </div>
@@ -168,8 +162,7 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
           className="bg-white p-6 md:p-8 rounded-2xl border border-primary/5 shadow-sm"
         >
           <Question
-            title="¿Te gustaría participar en un tiempo especial de oración durante el retiro?"
-            description="Durante el retiro habrá un espacio de ministración y oración personal (Healing Room), acompañado por el equipo de intercesión."
+            title={t('step4.prayer')}
             error={errors.prayerSession}
           >
             <div className="space-y-3">
@@ -180,7 +173,7 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
                   value={option}
                   checked={data.prayerSession === option}
                   onSelect={(value) => onChange({ prayerSession: value, prayerOther: '' })}
-                  label={option}
+                  label={t(option)}
                 />
               ))}
             </div>
@@ -203,13 +196,7 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
           className="bg-white p-6 md:p-8 rounded-2xl border border-primary/5 shadow-sm"
         >
           <Question
-            title="¿Qué esperás recibir o experimentar en este retiro?"
-            description={
-              <span className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-                Podés seleccionar todas las opciones que resuenen con vos.
-              </span>
-            }
+            title={t('step4.expectations')}
             error={errors.expectations}
           >
             <div className="space-y-3">
@@ -218,7 +205,7 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
                   key={option}
                   checked={data.expectations.includes(option)}
                   onToggle={() => toggleExpectation(option)}
-                  label={option}
+                  label={t(option)}
                 />
               ))}
             </div>
@@ -241,9 +228,8 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
           className="bg-white p-6 md:p-8 rounded-2xl border border-primary/5 shadow-sm"
         >
           <Question
-            title="¿Cómo te enteraste de Alegría Retreat 2026?"
+            title={t('step4.howDidYouHear')}
             required={false}
-            description="Esta pregunta es opcional, pero nos ayuda muchísimo a seguir llegando a más mujeres."
             error={errors.referralSource}
           >
             <div className="space-y-3">
@@ -254,7 +240,7 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
                   value={option}
                   checked={data.referralSource === option}
                   onSelect={(value) => onChange({ referralSource: value, referralOther: '' })}
-                  label={option}
+                  label={t(option)}
                 />
               ))}
             </div>
@@ -279,13 +265,13 @@ export default function Step4Experience({ data, onChange, onNext, onBack }: Step
             className="flex items-center gap-2 px-6 py-3 text-secondary font-sans text-sm font-semibold hover:bg-secondary/5 rounded-full transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            Anterior
+            {t('form.back')}
           </button>
           <button
             type="submit"
             className="w-full sm:w-auto bg-primary text-white font-sans text-sm font-semibold px-10 py-3 rounded-full hover:bg-primary-container hover:text-on-primary-container hover:shadow-lg transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
           >
-            Siguiente
+            {t('form.next')}
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

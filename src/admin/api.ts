@@ -115,6 +115,28 @@ export const actualizarPago = (
     body: JSON.stringify(cambios)
   });
 
+export const actualizarInscripcion = (
+  id: number,
+  cambios: Partial<Inscripcion>
+) =>
+  pedir<Record<string, never>>(`/api/admin/inscripciones/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(cambios)
+  });
+
+export const borrarInscripcion = (id: number) =>
+  pedir<Record<string, never>>(`/api/admin/inscripciones/${id}`, {
+    method: 'DELETE'
+  });
+
+export const crearInscripcionManual = (datos: { nombre_completo: string; email: string; telefono: string }) =>
+  pedir<{ id: number }>('/api/admin/inscripciones', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(datos)
+  });
+
 /** El token va en la URL porque <img> y las descargas no mandan cabeceras. */
 export const urlComprobante = (pagoId: number) =>
   `/api/admin/comprobante/${pagoId}?token=${encodeURIComponent(leerToken())}`;

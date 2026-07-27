@@ -9,6 +9,7 @@ import { RegistrationData } from '../types';
 import { TRAVEL_ORIGINS, DIETARY_OPTIONS, IMAGE_URLS } from '../data';
 import { Question, RadioOption, CheckOption, StepProgress } from './FormControls';
 import { motion } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Step2Props {
   data: RegistrationData;
@@ -19,6 +20,7 @@ interface Step2Props {
 }
 
 export default function Step2Preferences({ data, onChange, onNext, onBack }: Step2Props) {
+  const { t } = useLanguage();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const toggleDietary = (option: string) => {
@@ -42,18 +44,18 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
     const next: { [key: string]: string } = {};
 
     if (!data.travelOrigin) {
-      next.travelOrigin = 'Seleccioná desde dónde viajarás al retiro.';
+      next.travelOrigin = t('error.origin');
     } else if (
       (data.travelOrigin === 'Otros' || data.travelOrigin === 'Desde otro país') &&
       !data.travelOriginOther.trim()
     ) {
-      next.travelOrigin = 'Indicá la ciudad o el país desde el que viajás.';
+      next.travelOrigin = t('error.origin');
     }
 
     if (data.dietary.length === 0) {
-      next.dietary = 'Seleccioná al menos una opción. Si no tenés requerimientos, elegí "Ninguna".';
+      next.dietary = t('error.diet');
     } else if (data.dietary.includes('Otro') && !data.otherDietary.trim()) {
-      next.dietary = 'Especificá tu requerimiento alimenticio en el campo "Otro".';
+      next.dietary = t('error.diet.other');
     }
 
     setErrors(next);
@@ -67,19 +69,19 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
       exit={{ opacity: 0, y: -15 }}
       className="max-w-5xl mx-auto"
     >
-      <StepProgress step={2} label="Preferencias y Alimentación" />
+      <StepProgress step={2} label={t('step2.badge')} />
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Formulario */}
         <div className="md:col-span-8 bg-white rounded-2xl p-6 md:p-8 border border-primary/5 shadow-sm text-left">
           <form onSubmit={handleNext} className="space-y-10">
             {/* Q10 — Idioma de preferencia */}
-            <Question title="Idioma de preferencia">
+            <Question title={t('step2.lang')}>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
-                  { value: 'es', label: 'Español', Icon: Globe },
-                  { value: 'en', label: 'Inglés', Icon: Languages },
-                  { value: 'both', label: 'Ambos', Icon: Users }
+                  { value: 'es', label: t('step2.lang.es'), Icon: Globe },
+                  { value: 'en', label: t('step2.lang.en'), Icon: Languages },
+                  { value: 'both', label: t('step2.lang.both'), Icon: Users }
                 ].map(({ value, label, Icon }) => (
                   <label key={value} className="relative cursor-pointer">
                     <input
@@ -100,7 +102,7 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
 
             {/* Q11 — Origen del viaje */}
             <Question
-              title="¿Desde qué ciudad o país viajarás al retiro?"
+              title={t('step2.origin')}
               error={errors.travelOrigin}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -111,7 +113,7 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
                     value={city}
                     checked={data.travelOrigin === city}
                     onSelect={(value) => onChange({ travelOrigin: value, travelOriginOther: '' })}
-                    label={city}
+                    label={t(city)}
                   />
                 ))}
               </div>
@@ -121,7 +123,7 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
                   type="text"
                   value={data.travelOriginOther}
                   onChange={(e) => onChange({ travelOriginOther: e.target.value })}
-                  placeholder="Especificá tu ciudad o país"
+                  placeholder={t('step2.origin.ph')}
                   className="soft-input font-sans text-sm mt-4"
                 />
               )}
@@ -129,18 +131,15 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
 
             {/* Q12 — Requerimientos alimenticios */}
             <Question
-              title="¿Tenés algún requerimiento alimenticio especial o alergia?"
+              title={t('step2.diet')}
               description={
                 <>
                   <p>
-                    Durante el retiro se ofrecerán opciones de dietas especiales únicamente para las
-                    comidas principales. Por favor indicanos tus necesidades con anticipación para que
-                    podamos coordinarlas con el lugar.
+                    {t('step2.diet.desc')}
                   </p>
                   <p className="mt-2 flex items-start gap-2 text-primary font-semibold">
                     <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-secondary" />
-                    Importante: las notificaciones sobre requerimientos alimenticios serán recibidas
-                    hasta el 1 de septiembre de 2026.
+                    {t('step2.diet.warn')}
                   </p>
                 </>
               }
@@ -152,7 +151,7 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
                     key={option}
                     checked={data.dietary.includes(option)}
                     onToggle={() => toggleDietary(option)}
-                    label={option}
+                    label={t(option)}
                   />
                 ))}
               </div>
@@ -162,7 +161,7 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
                   value={data.otherDietary}
                   onChange={(e) => onChange({ otherDietary: e.target.value })}
                   rows={3}
-                  placeholder="Especificá tu requerimiento o alergia..."
+                  placeholder={t('step2.diet.ph')}
                   className="soft-input font-sans text-sm resize-none mt-4 rounded-t-md"
                 />
               )}
@@ -176,13 +175,13 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
                 className="flex items-center gap-2 px-6 py-3 text-secondary font-sans text-sm font-semibold hover:bg-secondary/5 rounded-full transition-all cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Anterior
+                {t('form.back')}
               </button>
               <button
                 type="submit"
                 className="w-full sm:w-auto bg-primary text-white font-sans text-sm font-semibold px-10 py-3 rounded-full hover:bg-primary-container hover:text-on-primary-container hover:shadow-lg transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
-                Siguiente
+                {t('form.next')}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -199,7 +198,7 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
                 <div className="text-white">
                   <span className="text-[10px] font-sans font-bold uppercase tracking-wider opacity-85 block">
-                    Ubicación del Retiro
+                    {t('step2.sidebar.loc')}
                   </span>
                   <h3 className="font-display text-xl">Wisemans Retreat, NSW</h3>
                 </div>
@@ -207,7 +206,7 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
             </div>
             <div className="p-5">
               <p className="font-sans text-xs md:text-sm text-on-surface-variant italic leading-relaxed">
-                11 al 13 de septiembre de 2026. Check-in viernes 5:00 pm · Check-out domingo 3:00 pm.
+                {t('step2.sidebar.date')}
               </p>
             </div>
           </div>
@@ -216,12 +215,11 @@ export default function Step2Preferences({ data, onChange, onNext, onBack }: Ste
             <div className="flex items-center gap-2 mb-3">
               <Info className="w-4 h-4 text-primary" />
               <h4 className="font-sans text-xs font-bold text-primary uppercase tracking-wider">
-                Nota Importante
+                {t('step2.sidebar.note')}
               </h4>
             </div>
             <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
-              Toda la información proporcionada es confidencial y será utilizada exclusivamente para
-              personalizar tu experiencia y garantizar tu seguridad durante el retiro.
+              {t('step2.sidebar.notedesc')}
             </p>
           </div>
         </aside>

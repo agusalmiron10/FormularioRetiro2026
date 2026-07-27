@@ -9,6 +9,7 @@ import { RegistrationData } from '../types';
 import { IMAGE_URLS, PAYMENT_OPTIONS, LINKS } from '../data';
 import { CheckOption, StepProgress } from './FormControls';
 import { motion } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Step5Props {
   data: RegistrationData;
@@ -28,6 +29,7 @@ export default function Step5Finalize({
   submitting,
   submitError
 }: Step5Props) {
+  const { t } = useLanguage();
   const [error, setError] = useState('');
 
   const selectedPayment = PAYMENT_OPTIONS.find((o) => o.id === data.paymentOption);
@@ -44,14 +46,12 @@ export default function Step5Finalize({
     e.preventDefault();
 
     if (!data.paymentProof) {
-      setError(
-        'Falta el comprobante de pago. Volvé al paso 3 y adjuntá la captura de tu transferencia.'
-      );
+      setError(t('error.receipt'));
       return;
     }
 
     if (!data.confirmReservation || !data.confirmCancellation || !data.confirmTerms) {
-      setError('Debés marcar las tres confirmaciones para poder enviar tu registro.');
+      setError(t('error.terms'));
       return;
     }
 
@@ -66,36 +66,36 @@ export default function Step5Finalize({
       exit={{ opacity: 0, y: -15 }}
       className="max-w-5xl mx-auto text-left"
     >
-      <StepProgress step={5} label="Confirmación y Envío" />
+      <StepProgress step={5} label={t('step5.badge')} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8" id="registration-form-container">
         {/* Columna izquierda: resumen + T&C */}
         <div className="lg:col-span-7 space-y-6">
           {/* Resumen */}
           <section className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-outline-variant/15">
-            <h2 className="font-display text-2xl text-primary mb-2">Resumen de tu Registro</h2>
+            <h2 className="font-display text-2xl text-primary mb-2">{t('step5.title')}</h2>
             <p className="font-sans text-xs text-on-surface-variant mb-6">
-              Revisá que toda la información sea correcta antes de enviar tu solicitud.
+              {t('step5.subtitle')}
             </p>
 
             <dl className="font-sans text-sm divide-y divide-outline-variant/10">
               {[
-                { label: 'Participante', value: data.fullName },
+                { label: t('step5.summary.personal'), value: data.fullName },
                 { label: 'Email', value: data.email },
-                { label: 'Teléfono', value: data.phone },
-                { label: 'Contacto de emergencia', value: `${data.emergencyName} · ${data.emergencyPhone}` },
+                { label: t('step1.phone'), value: data.phone },
+                { label: t('step1.emergency'), value: `${data.emergencyName} · ${data.emergencyPhone}` },
                 {
-                  label: 'Idioma',
-                  value: data.language === 'es' ? 'Español' : data.language === 'en' ? 'Inglés' : 'Ambos'
+                  label: t('step2.lang'),
+                  value: data.language === 'es' ? t('step2.lang.es') : data.language === 'en' ? t('step2.lang.en') : t('step2.lang.both')
                 },
-                { label: 'Viaja desde', value: origin },
-                { label: 'Alimentación', value: dietaryLabel },
-                { label: 'Apoyo a otras mujeres', value: data.sponsorship },
-                { label: 'Transporte', value: data.transport },
-                { label: 'Tiempo de oración', value: data.prayerSession === 'Otros' ? data.prayerOther : data.prayerSession },
+                { label: t('step2.origin'), value: origin },
+                { label: t('step5.summary.diet'), value: dietaryLabel },
+                { label: t('step4.support'), value: t(data.sponsorship) },
+                { label: t('step4.transport'), value: t(data.transport) },
+                { label: t('step4.prayer'), value: data.prayerSession === 'Otros' ? data.prayerOther : t(data.prayerSession) },
                 {
-                  label: 'Compañera de habitación',
-                  value: data.roommatePreference || 'Sin preferencia'
+                  label: t('step5.summary.roommate'),
+                  value: data.roommatePreference || t('step5.summary.empty')
                 }
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between items-start gap-4 py-3">
@@ -103,7 +103,7 @@ export default function Step5Finalize({
                     {label}
                   </dt>
                   <dd className="text-on-surface font-semibold text-right min-w-0 break-words">
-                    {value || <span className="text-on-surface-variant italic font-normal">No especificado</span>}
+                    {value || <span className="text-on-surface-variant italic font-normal">{t('step5.summary.empty')}</span>}
                   </dd>
                 </div>
               ))}
@@ -111,11 +111,11 @@ export default function Step5Finalize({
               {/* Pago */}
               <div className="flex justify-between items-start gap-4 py-3">
                 <dt className="text-tertiary text-xs font-semibold uppercase tracking-wide shrink-0">
-                  Pago realizado
+                  {t('step3.badge')}
                 </dt>
                 <dd className="text-right min-w-0">
                   <span className="text-on-surface font-semibold break-words block">
-                    {selectedPayment?.label || 'No especificado'}
+                    {selectedPayment?.label ? t(selectedPayment.label) : t('step5.summary.empty')}
                   </span>
                   {selectedPayment?.amount && (
                     <span className="font-display text-2xl text-primary block mt-1">
@@ -128,7 +128,7 @@ export default function Step5Finalize({
               {/* Comprobante */}
               <div className="flex justify-between items-start gap-4 py-3">
                 <dt className="text-tertiary text-xs font-semibold uppercase tracking-wide shrink-0">
-                  Comprobante
+                  {t('step3.upload')}
                 </dt>
                 <dd className="text-right min-w-0">
                   {data.paymentProof ? (
@@ -143,106 +143,30 @@ export default function Step5Finalize({
                         <FileText className="w-5 h-5 text-tertiary" />
                       )}
                       <span className="font-sans text-xs font-semibold text-status-success">
-                        Adjuntado
+                        {t('step3.uploaded')}
                       </span>
                     </span>
                   ) : (
-                    <span className="font-sans text-xs font-bold text-red-600">Falta adjuntar</span>
+                    <span className="font-sans text-xs font-bold text-red-600">{t('step5.summary.empty')}</span>
                   )}
                 </dd>
               </div>
             </dl>
           </section>
 
-          {/* Términos y condiciones */}
-          <section className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-outline-variant/15">
-            <h3 className="font-sans text-sm font-bold text-tertiary mb-4 uppercase tracking-wider">
-              Términos y Condiciones — Alegría Retreats: Renueva 2026
-            </h3>
-
-            <div className="max-h-56 overflow-y-auto p-4 bg-cream-base border border-outline-variant/20 rounded-xl mb-6 text-xs text-on-surface-variant leading-relaxed space-y-3">
-              <p>
-                <strong>1. Inscripción.</strong> Tu lugar en el retiro quedará confirmado únicamente
-                una vez recibido el pago y su comprobante correspondiente.
-              </p>
-              <p>
-                <strong>2. Responsabilidad personal.</strong> Cada participante es responsable de su
-                propio bienestar y se compromete a informar cualquier condición médica relevante al
-                momento de la inscripción.
-              </p>
-              <p>
-                <strong>3. Pérdidas y accidentes.</strong> Alegría Retreats no se hace responsable por
-                pérdidas de objetos personales ni por accidentes ocurridos durante el evento.
-              </p>
-              <p>
-                <strong>4. Convivencia.</strong> Se espera una conducta respetuosa hacia todas las
-                participantes y el equipo organizador durante toda la estadía.
-              </p>
-              <p>
-                <strong>5. Sustancias.</strong> No está permitido el consumo de alcohol ni de
-                sustancias prohibidas dentro del predio del retiro.
-              </p>
-              <p>
-                <strong>6. Fotografías y video.</strong> Autorizo el uso de fotografías y grabaciones
-                tomadas durante las actividades del retiro con fines de difusión y promoción de
-                futuros retiros en los canales de Alegría Retreats.
-              </p>
-              <p>
-                <strong>7. Fuerza mayor.</strong> Ante situaciones de fuerza mayor ajenas a la
-                organización, el retiro podrá ser reprogramado, ofreciéndose el traslado de la
-                inscripción a la nueva fecha.
-              </p>
-              <p>
-                <strong>8. Cancelación.</strong> Los pagos no son reembolsables, salvo situaciones de
-                emergencia evaluadas por el equipo organizador, en cuyo caso podrá otorgarse un
-                crédito para un próximo retiro.
-              </p>
-            </div>
-
-            <h4 className="font-sans text-xs font-bold text-primary mb-3 uppercase tracking-wider">
-              Confirmación y aceptación
-              <span className="text-secondary align-super ml-1">*</span>
-            </h4>
-
-            <div className="space-y-3">
-              <CheckOption
-                checked={data.confirmReservation}
-                onToggle={() => onChange({ confirmReservation: !data.confirmReservation })}
-                label="Confirmo que entiendo que mi lugar quedará reservado una vez recibido el pago."
-              />
-              <CheckOption
-                checked={data.confirmCancellation}
-                onToggle={() => onChange({ confirmCancellation: !data.confirmCancellation })}
-                label="Confirmo que he leído y acepto la Política de Cancelación."
-              />
-              <CheckOption
-                checked={data.confirmTerms}
-                onToggle={() => onChange({ confirmTerms: !data.confirmTerms })}
-                label="Confirmo que he leído y acepto los Términos y Condiciones."
-              />
-            </div>
-
-            {(error || submitError) && (
-              <p className="text-red-600 text-xs font-semibold mt-4 flex items-start gap-1.5 bg-red-50 px-3 py-2.5 rounded-lg border border-red-100">
-                <ShieldAlert className="w-4 h-4 shrink-0 mt-px" />
-                {error || submitError}
-              </p>
-            )}
-          </section>
-
           {/* Comentarios finales */}
           <section className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-outline-variant/15">
             <h3 className="font-display text-2xl text-primary mb-1">
-              ¿Querés dejarnos algún comentario?
+              {t('step5.comments')}
             </h3>
             <p className="font-sans text-xs text-on-surface-variant mb-4">
-              Opcional. Cualquier cosa que quieras compartir con el equipo antes del retiro.
+              {t('step5.comments.ph')}
             </p>
             <textarea
               value={data.comments}
               onChange={(e) => onChange({ comments: e.target.value })}
               rows={4}
-              placeholder="Tu respuesta"
+              placeholder={t('step5.comments.ph')}
               className="soft-input font-sans text-sm resize-none rounded-t-md"
             />
           </section>
@@ -267,6 +191,59 @@ export default function Step5Finalize({
             </div>
           </div>
 
+          {/* Términos y condiciones */}
+          <section className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-outline-variant/15">
+            <h3 className="font-sans text-sm font-bold text-tertiary mb-4 uppercase tracking-wider">
+              {t('step5.terms.title')}
+            </h3>
+
+            <div className="max-h-40 overflow-y-auto p-4 bg-cream-base border border-outline-variant/20 rounded-xl mb-6 text-xs text-on-surface-variant leading-relaxed space-y-3">
+              <p>
+                <strong>1. Inscripción.</strong> Tu lugar en el retiro quedará confirmado únicamente
+                una vez recibido el pago y su comprobante.
+              </p>
+              <p>
+                <strong>2. Responsabilidad.</strong> Cada participante es responsable de su bienestar.
+              </p>
+              <p>
+                <strong>3. Convivencia.</strong> Se espera una conducta respetuosa hacia todas las participantes.
+              </p>
+              <p>
+                <strong>4. Cancelación.</strong> Los pagos no son reembolsables salvo emergencias evaluadas.
+              </p>
+            </div>
+
+            <h4 className="font-sans text-xs font-bold text-primary mb-3 uppercase tracking-wider">
+              {t('step5.confirm.title')}
+              <span className="text-secondary align-super ml-1">*</span>
+            </h4>
+
+            <div className="space-y-3">
+              <CheckOption
+                checked={data.confirmReservation}
+                onToggle={() => onChange({ confirmReservation: !data.confirmReservation })}
+                label={t('step5.confirm.reservation')}
+              />
+              <CheckOption
+                checked={data.confirmCancellation}
+                onToggle={() => onChange({ confirmCancellation: !data.confirmCancellation })}
+                label={t('step5.confirm.cancellation')}
+              />
+              <CheckOption
+                checked={data.confirmTerms}
+                onToggle={() => onChange({ confirmTerms: !data.confirmTerms })}
+                label={t('step5.confirm.terms')}
+              />
+            </div>
+
+            {(error || submitError) && (
+              <p className="text-red-600 text-xs font-semibold mt-4 flex items-start gap-1.5 bg-red-50 px-3 py-2.5 rounded-lg border border-red-100">
+                <ShieldAlert className="w-4 h-4 shrink-0 mt-px" />
+                {error || submitError}
+              </p>
+            )}
+          </section>
+
           <button
             type="button"
             onClick={handleFormSubmit}
@@ -276,29 +253,23 @@ export default function Step5Finalize({
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Enviando…</span>
+                <span>{t('step5.submitting')}</span>
               </>
             ) : (
               <>
-                <span>Enviar Registro</span>
+                <span>{t('step5.submit')}</span>
                 <Send className="w-4 h-4" />
               </>
             )}
           </button>
 
-          <p className="text-center font-sans text-xs text-tertiary italic">
-            {submitting
-              ? 'Estamos subiendo tu comprobante, no cierres esta ventana.'
-              : 'Tu registro será procesado de forma segura.'}
-          </p>
-
           <button
             type="button"
             onClick={onBack}
-            className="text-primary hover:text-primary-container text-center font-sans text-sm font-semibold flex items-center justify-center gap-1 cursor-pointer self-center"
+            className="text-primary hover:text-primary-container text-center font-sans text-sm font-semibold flex items-center justify-center gap-1 cursor-pointer self-center mt-6"
           >
             <ChevronLeft className="w-4 h-4" />
-            Corregir datos anteriores
+            {t('form.back')}
           </button>
 
           {/* Enlaces oficiales */}

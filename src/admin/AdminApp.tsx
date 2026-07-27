@@ -21,9 +21,13 @@ import {
   FileSpreadsheet,
   LogOut,
   AlertTriangle,
-  Clock
+  Clock,
+  Printer,
+  MessageCircle
 } from 'lucide-react';
 import {
+  ErrorApi,
+  Inscripcion,
   Listado,
   Resumen,
   borrarToken,
@@ -32,7 +36,95 @@ import {
   leerToken,
   urlExport
 } from './api';
+import { Recordatorio, calcularRecordatorio, urlWhatsapp } from './recordatorios';
 import FichaInscripcion from './FichaInscripcion';
+
+const VERDE_WHATSAPP = '#25D366';
+const VERDE_WHATSAPP_TEXTO = '#128C4A';
+
+function ModalRecordatorios({
+  inscripciones,
+  onCerrar
+}: {
+  inscripciones: Inscripcion[];
+  onCerrar: () => void;
+}) {
+  const pendientes = inscripciones
+    .map((inscripcion) => ({ inscripcion, recordatorio: calcularRecordatorio(inscripcion) }))
+    .filter(
+      (fila): fila is { inscripcion: Inscripcion; recordatorio: Recordatorio } =>
+        fila.recordatorio !== null
+    );
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onCerrar}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg bg-white rounded-2xl border border-outline-variant/20 p-6 shadow-xl max-h-[85vh] overflow-y-auto"
+      >
+        <h3 className="font-display text-xl text-primary mb-1.5 flex items-center gap-2">
+          <MessageCircle className="w-5 h-5" style={{ color: VERDE_WHATSAPP_TEXTO }} />
+          Recordatorios de pago
+        </h3>
+        <p className="font-sans text-xs text-on-surface-variant mb-5 leading-relaxed">
+          WhatsApp no deja que un botón mande mensajes en cadena sola: hay que confirmar cada
+          envío. Cada "Abrir" abre el chat con el mensaje ya escrito según lo que debe esa
+          persona — solo falta apretar enviar adentro de WhatsApp.
+        </p>
+
+        {pendientes.length === 0 ? (
+          <p className="font-sans text-sm text-on-surface-variant italic py-10 text-center">
+            Nadie tiene un pago pendiente por ahora. 🎉
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {pendientes.map(({ inscripcion, recordatorio }) => (
+              <div
+                key={inscripcion.id}
+                className="flex items-center justify-between gap-3 p-3 rounded-xl border border-outline-variant/20 bg-surface-container-low"
+              >
+                <div className="min-w-0">
+                  <p className="font-sans text-sm font-semibold text-on-surface truncate">
+                    {inscripcion.nombre_completo}
+                  </p>
+                  <p className="font-sans text-xs text-on-surface-variant truncate">
+                    {recordatorio.telefono ? inscripcion.telefono : 'Sin teléfono cargado'} ·{' '}
+                    {recordatorio.detalle}
+                  </p>
+                </div>
+                {recordatorio.telefono ? (
+                  <a
+                    href={urlWhatsapp(recordatorio.telefono, recordatorio.mensaje)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-white font-sans text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                    style={{ backgroundColor: VERDE_WHATSAPP }}
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Abrir
+                  </a>
+                ) : (
+                  <span className="shrink-0 font-sans text-[11px] text-tertiary italic">
+                    Sin teléfono
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex justify-end pt-4 mt-4 border-t border-outline-variant/20">
+          <button
+            onClick={onCerrar}
+            className="px-4 py-2 rounded-full font-sans text-xs font-semibold text-tertiary hover:bg-surface-container-low transition-colors cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const money = (n: number) =>
   `$${n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
@@ -249,7 +341,18 @@ export default function AdminApp() {
   const [error, setError] = useState('');
   const [busqueda, setBusqueda] = useState('');
   const [estado, setEstado] = useState('');
+  const [orden, setOrden] = useState<'recientes' | 'antiguas' | 'mayor_pago' | 'alfabetico'>('recientes');
   const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null);
+  
+  const [modalManual, setModalManual] = useState(false);
+  const [nuevaInscripcion, setNuevaInscripcion] = useState({ nombre_completo: '', email: '', telefono: '' });
+  const [creandoManual, setCreandoManual] = useState(false);
+  const [modalRecordatorios, setModalRecordatorios] = useState(false);
+
+  // Cuenta regresiva
+  const fechaRetiro = new Date('2026-09-11T00:00:00');
+  const hoy = new Date();
+  const diasFaltantes = Math.ceil((fechaRetiro.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
 
   const refrescar = useCallback(async () => {
     setCargando(true);
@@ -258,15 +361,34 @@ export default function AdminApp() {
       setDatos(await cargarListado({ q: busqueda, estado }));
       setUltimaActualizacion(new Date());
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No pudimos cargar los datos.');
-      if (err instanceof Error && err.message.includes('No autorizado')) {
+      if (err instanceof ErrorApi && err.status === 401) {
         borrarToken();
         setAutenticado(false);
+        setDatos(null);
       }
+      setError(err instanceof Error ? err.message : 'Error cargando datos');
     } finally {
       setCargando(false);
     }
-  }, [busqueda, estado]);
+  }, [estado, busqueda]);
+
+  const handleCrearManual = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nuevaInscripcion.nombre_completo.trim()) return;
+    
+    setCreandoManual(true);
+    try {
+      const { crearInscripcionManual } = await import('./api');
+      await crearInscripcionManual(nuevaInscripcion);
+      setModalManual(false);
+      setNuevaInscripcion({ nombre_completo: '', email: '', telefono: '' });
+      await refrescar();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al crear');
+    } finally {
+      setCreandoManual(false);
+    }
+  };
 
   useEffect(() => {
     if (!autenticado) return;
@@ -299,6 +421,8 @@ export default function AdminApp() {
           (i) => !i.tiene_pendientes && i.pagos.some((p) => p.estado === 'verificado')
         ).length
       : null;
+  const cuentaDeudoras =
+    datos?.inscripciones.filter((i) => calcularRecordatorio(i) !== null).length ?? 0;
 
   const filtros: { valor: string; texto: string; badge: number | null }[] = [
     { valor: '', texto: 'Todas', badge: cuentaTodas },
@@ -314,9 +438,12 @@ export default function AdminApp() {
             Inscripciones · Renueva 2026
           </h1>
           <div className="flex items-center gap-2 mt-0.5">
-            <p className="font-sans text-[11px] text-tertiary">Panel del equipo organizador</p>
+            <p className="font-sans text-[11px] text-tertiary hidden sm:block">Panel del equipo organizador</p>
+            <span className="inline-flex items-center font-sans text-[11px] font-bold text-[#8A6A00] bg-accent-gold/20 px-2 py-0.5 rounded-full">
+              Faltan {diasFaltantes} días
+            </span>
             {ultimaActualizacion && (
-              <span className="inline-flex items-center gap-1 font-sans text-[10px] text-tertiary/70">
+              <span className="inline-flex items-center gap-1 font-sans text-[10px] text-tertiary/70 border-l border-outline-variant/30 pl-2 ml-1">
                 <Clock className="w-3 h-3" />
                 Actualizado{' '}
                 {ultimaActualizacion.toLocaleTimeString('es-AR', {
@@ -329,6 +456,13 @@ export default function AdminApp() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => window.print()}
+            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-white border border-outline-variant/40 text-tertiary font-sans text-xs font-semibold rounded-full hover:border-primary hover:text-primary transition-colors cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            Imprimir
+          </button>
           <a
             href={urlExport('xlsx')}
             className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-sans text-xs font-semibold rounded-full hover:bg-primary-container transition-colors"
@@ -364,7 +498,8 @@ export default function AdminApp() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 md:px-8 py-8">
+      {/* Vista principal (oculta al imprimir) */}
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-8 print:hidden">
         {resumen && (
           <>
             {/* Tarjetas de resumen */}
@@ -433,6 +568,46 @@ export default function AdminApp() {
               </button>
             ))}
           </div>
+
+          <button
+            onClick={() => setModalRecordatorios(true)}
+            className="flex items-center gap-2 px-4 py-3 text-white font-sans text-xs font-semibold rounded-full hover:opacity-90 transition-opacity shadow-sm cursor-pointer whitespace-nowrap"
+            style={{ backgroundColor: VERDE_WHATSAPP }}
+          >
+            <MessageCircle className="w-4 h-4" />
+            Recordatorios
+            {cuentaDeudoras > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-white/25 text-white">
+                {cuentaDeudoras}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setModalManual(true)}
+            className="ml-auto flex items-center gap-2 px-4 py-3 bg-tertiary text-white font-sans text-xs font-semibold rounded-full hover:bg-tertiary/90 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+          >
+            + Nueva manual
+          </button>
+
+          <div className="shrink-0">
+            <select
+              value={orden}
+              onChange={(e) => setOrden(e.target.value as any)}
+              className="h-full bg-white border border-outline-variant/40 rounded-full px-4 py-3 font-sans text-xs font-semibold text-tertiary outline-none focus:border-primary transition-colors cursor-pointer appearance-none pr-8 relative"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 12px center',
+                backgroundSize: '14px'
+              }}
+            >
+              <option value="recientes">Más recientes</option>
+              <option value="antiguas">Más antiguas</option>
+              <option value="mayor_pago">Mayor pago</option>
+              <option value="alfabetico">Alfabético</option>
+            </select>
+          </div>
         </div>
 
         {error && (
@@ -460,7 +635,16 @@ export default function AdminApp() {
         )}
 
         <div className="space-y-4">
-          {datos?.inscripciones.map((inscripcion) => (
+          {datos?.inscripciones
+            .slice()
+            .sort((a, b) => {
+              if (orden === 'recientes') return b.id - a.id;
+              if (orden === 'antiguas') return a.id - b.id;
+              if (orden === 'mayor_pago') return b.total_verificado - a.total_verificado;
+              if (orden === 'alfabetico') return a.nombre_completo.localeCompare(b.nombre_completo);
+              return 0;
+            })
+            .map((inscripcion) => (
             <FichaInscripcion
               key={inscripcion.id}
               inscripcion={inscripcion}
@@ -469,6 +653,124 @@ export default function AdminApp() {
           ))}
         </div>
       </main>
+
+      {/* Vista de impresión (oculta en pantalla) */}
+      <div className="hidden print:block bg-white p-8 font-sans text-black">
+        <div className="flex justify-between items-end border-b-2 border-black pb-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold font-display">Renueva 2026</h1>
+            <p className="text-sm mt-1">Lista de Asistencia Oficial</p>
+          </div>
+          <div className="text-right text-sm">
+            <p>Total inscriptas: {datos?.inscripciones.length || 0}</p>
+            <p>Fecha de impresión: {new Date().toLocaleDateString('es-AR')}</p>
+          </div>
+        </div>
+
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th className="border-b border-gray-400 py-3 px-2 w-16 text-center text-xs uppercase tracking-wider">Llegó</th>
+              <th className="border-b border-gray-400 py-3 px-2 text-xs uppercase tracking-wider">Nombre completo</th>
+              <th className="border-b border-gray-400 py-3 px-2 text-xs uppercase tracking-wider">Teléfono / Email</th>
+              <th className="border-b border-gray-400 py-3 px-2 text-xs uppercase tracking-wider">Alergias / Dieta</th>
+              <th className="border-b border-gray-400 py-3 px-2 text-xs uppercase tracking-wider">Firma</th>
+            </tr>
+          </thead>
+          <tbody className="text-sm">
+            {datos?.inscripciones
+              .slice()
+              .sort((a, b) => a.nombre_completo.localeCompare(b.nombre_completo))
+              .map((i, index) => (
+                <tr key={i.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                  <td className="border-b border-gray-200 py-3 px-2 text-center">
+                    <div className="w-6 h-6 border-2 border-gray-400 mx-auto rounded-sm"></div>
+                  </td>
+                  <td className="border-b border-gray-200 py-3 px-2 font-bold">{i.nombre_completo}</td>
+                  <td className="border-b border-gray-200 py-3 px-2">
+                    <div className="whitespace-nowrap">{i.telefono}</div>
+                    <div className="text-xs text-gray-500">{i.email}</div>
+                  </td>
+                  <td className="border-b border-gray-200 py-3 px-2 text-xs">
+                    {[i.dieta.join(', '), i.dieta_otro, i.condicion_medica].filter(Boolean).join(' · ') || '-'}
+                  </td>
+                  <td className="border-b border-gray-200 py-3 px-2">
+                    <div className="w-32 border-b border-gray-300 mx-auto mt-4"></div>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Modal Recordatorios por WhatsApp */}
+      {modalRecordatorios && (
+        <ModalRecordatorios
+          inscripciones={datos?.inscripciones ?? []}
+          onCerrar={() => setModalRecordatorios(false)}
+        />
+      )}
+
+      {/* Modal Nueva Inscripción Manual */}
+      {modalManual && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm print:hidden">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl relative">
+            <h2 className="font-display text-2xl text-primary mb-1">Cargar manual</h2>
+            <p className="font-sans text-xs text-on-surface-variant mb-6">
+              Creará una ficha vacía con estos datos básicos. Luego podés expandirla y hacer clic en "Editar" para completar el resto.
+            </p>
+            
+            <form onSubmit={handleCrearManual} className="space-y-4">
+              <div>
+                <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Nombre completo *</label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={nuevaInscripcion.nombre_completo}
+                  onChange={e => setNuevaInscripcion({ ...nuevaInscripcion, nombre_completo: e.target.value })}
+                  className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2.5 font-sans text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Email</label>
+                <input
+                  type="email"
+                  value={nuevaInscripcion.email}
+                  onChange={e => setNuevaInscripcion({ ...nuevaInscripcion, email: e.target.value })}
+                  className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2.5 font-sans text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block font-sans text-xs font-semibold text-tertiary mb-1">Teléfono</label>
+                <input
+                  type="tel"
+                  value={nuevaInscripcion.telefono}
+                  onChange={e => setNuevaInscripcion({ ...nuevaInscripcion, telefono: e.target.value })}
+                  className="w-full bg-white border border-outline-variant/40 rounded-lg px-3 py-2.5 font-sans text-sm outline-none focus:border-primary"
+                />
+              </div>
+              
+              <div className="flex gap-3 pt-4 border-t border-outline-variant/20 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setModalManual(false)}
+                  className="flex-1 px-4 py-2.5 border border-outline-variant text-tertiary font-sans text-sm font-semibold rounded-full hover:border-primary hover:text-primary transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={creandoManual || !nuevaInscripcion.nombre_completo.trim()}
+                  className="flex-1 px-4 py-2.5 bg-primary text-white font-sans text-sm font-semibold rounded-full hover:bg-primary-container transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {creandoManual ? 'Creando...' : 'Crear ficha'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
