@@ -207,3 +207,56 @@ export async function enviarPagoVerificado(
     html
   });
 }
+
+export interface DatosMailPagoRechazado {
+  numero: number;
+  nombreCompleto: string;
+  email: string;
+  pagoDescripcion: string;
+  nota: string | null;
+}
+
+/**
+ * Mail al rechazar un pago: no acusa, invita a resolverlo por privado. El
+ * motivo real (nota interna del panel) no se expone tal cual — puede tener
+ * lenguaje pensado para el equipo, no para la persona.
+ */
+export async function enviarPagoRechazado(
+  env: EnvMail,
+  datos: DatosMailPagoRechazado
+): Promise<ResultadoEnvio> {
+  const primerNombre = datos.nombreCompleto.trim().split(/\s+/)[0] || 'Hermana';
+
+  const html = plantilla(
+    'Un detalle con tu pago',
+    `
+    <h2 style="margin:0 0 12px;color:#5D2304;font-size:20px;">Hola ${escaparHtml(primerNombre)}, necesitamos revisar tu pago</h2>
+    <p style="margin:0 0 20px;color:#5C4A3A;font-size:14px;line-height:1.6;">
+      Estuvimos revisando tu comprobante para <strong>Renueva 2026</strong> y todavía no pudimos
+      confirmarlo del lado del banco. No te preocupes: tu inscripción sigue registrada,
+      simplemente necesitamos que nos ayudes a aclarar este pago.
+    </p>
+
+    <div style="background:#FCEEE4;border:1px solid #F2D6BE;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+      <p style="margin:0;color:#8a5a2e;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">
+        Pago a revisar
+      </p>
+      <p style="margin:2px 0 0;color:#5D2304;font-size:16px;font-weight:600;">
+        ${escaparHtml(datos.pagoDescripcion)}
+      </p>
+    </div>
+
+    <p style="margin:0 0 20px;color:#5C4A3A;font-size:14px;line-height:1.6;">
+      Respondé este mismo mail (o escribinos por WhatsApp) contándonos cómo y cuándo hiciste
+      la transferencia, y lo resolvemos juntas a la brevedad.
+    </p>
+
+    <p style="margin:0;color:#8a7a68;font-size:12px;">N.º de inscripción #${String(datos.numero).padStart(3, '0')}</p>`
+  );
+
+  return enviarMail(env, {
+    to: datos.email,
+    subject: `Necesitamos revisar tu pago · Renueva 2026 · #${String(datos.numero).padStart(3, '0')}`,
+    html
+  });
+}

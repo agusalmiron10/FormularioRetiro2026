@@ -7,7 +7,7 @@
  */
 
 import { AdminEnv, json, quienOpera, requireAdmin } from '../../_auth';
-import { enviarPagoVerificado } from '../../../_mail';
+import { enviarPagoRechazado, enviarPagoVerificado } from '../../../_mail';
 
 const ESTADOS = ['pendiente', 'verificado', 'rechazado'] as const;
 type Estado = (typeof ESTADOS)[number];
@@ -45,7 +45,7 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
 
   try {
     const pago = await env.DB.prepare(
-      `SELECT p.id, p.reportado_en, p.descripcion, p.monto, p.metodo, p.inscripcion_id,
+      `SELECT p.id, p.estado, p.reportado_en, p.descripcion, p.monto, p.metodo, p.inscripcion_id,
               i.nombre_completo, i.email
          FROM pagos p JOIN inscripciones i ON i.id = p.inscripcion_id
         WHERE p.id = ?`
@@ -53,6 +53,7 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
       .bind(id)
       .first<{
         id: number;
+        estado: Estado;
         reportado_en: string;
         descripcion: string;
         monto: number | null;
@@ -64,6 +65,7 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
 
     if (!pago) return json({ ok: false, error: 'Ese pago no existe.' }, 404);
 
+    const estadoAnterior = pago.estado;
     const esVerificado = estado === 'verificado';
     const fechaPago = pagadoEn || pago.reportado_en;
 
@@ -88,20 +90,31 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
       )
       .run();
 
-    // Se manda siempre que se marque como verificado, incluso si ya lo estaba
-    // (ej. lo destocaron y lo volvieron a confirmar) — es una acción explícita
-    // del equipo, no un cambio de estado silencioso.
-    if (esVerificado) {
-      const { enviado, error: errorMail } = await enviarPagoVerificado(env, {
-        numero: pago.inscripcion_id,
-        nombreCompleto: pago.nombre_completo,
-        email: pago.email,
-        pagoDescripcion: pago.descripcion,
-        pagoMonto: pago.monto,
-        metodo: pago.metodo,
-        pagadoEn: fechaPago
-      });
-      if (!enviado) console.error('No se pudo enviar el mail de pago verificado:', errorMail);
+    // El mail sólo sale si el estado realmente cambió — repetir "Verificar"
+    // sobre un pago que ya estaba verificado (por corregir sólo la fecha o
+    // la nota, por ejemplo) no debe reenviar el aviso.
+    if (estado !== estadoAnterior) {
+      if (estado === 'verificado') {
+        const { enviado, error: errorMail } = await enviarPagoVerificado(env, {
+          numero: pago.inscripcion_id,
+          nombreCompleto: pago.nombre_completo,
+          email: pago.email,
+          pagoDescripcion: pago.descripcion,
+          pagoMonto: pago.monto,
+          metodo: pago.metodo,
+          pagadoEn: fechaPago
+        });
+        if (!enviado) console.error('No se pudo enviar el mail de pago verificado:', errorMail);
+      } else if (estado === 'rechazado') {
+        const { enviado, error: errorMail } = await enviarPagoRechazado(env, {
+          numero: pago.inscripcion_id,
+          nombreCompleto: pago.nombre_completo,
+          email: pago.email,
+          pagoDescripcion: pago.descripcion,
+          nota: String(cuerpo.nota ?? '').trim() || null
+        });
+        if (!enviado) console.error('No se pudo enviar el mail de pago rechazado:', errorMail);
+      }
     }
 
     return json({ ok: true }, 200);
