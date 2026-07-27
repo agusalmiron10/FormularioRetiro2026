@@ -7,11 +7,16 @@
  */
 
 import { AdminEnv, json, quienOpera, requireAdmin } from '../../_auth';
+import { enviarPagoVerificado } from '../../../_mail';
 
 const ESTADOS = ['pendiente', 'verificado', 'rechazado'] as const;
 type Estado = (typeof ESTADOS)[number];
 
-export const onRequestPost: PagesFunction<AdminEnv> = async ({ request, env, params }) => {
+interface EnvVerificar extends AdminEnv {
+  RESEND_API_KEY?: string;
+}
+
+export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env, params }) => {
   const rechazo = requireAdmin(request, env);
   if (rechazo) return rechazo;
 
@@ -39,13 +44,28 @@ export const onRequestPost: PagesFunction<AdminEnv> = async ({ request, env, par
   }
 
   try {
-    const pago = await env.DB.prepare('SELECT id, reportado_en FROM pagos WHERE id = ?')
+    const pago = await env.DB.prepare(
+      `SELECT p.id, p.reportado_en, p.descripcion, p.monto, p.metodo, p.inscripcion_id,
+              i.nombre_completo, i.email
+         FROM pagos p JOIN inscripciones i ON i.id = p.inscripcion_id
+        WHERE p.id = ?`
+    )
       .bind(id)
-      .first<{ id: number; reportado_en: string }>();
+      .first<{
+        id: number;
+        reportado_en: string;
+        descripcion: string;
+        monto: number | null;
+        metodo: string;
+        inscripcion_id: number;
+        nombre_completo: string;
+        email: string;
+      }>();
 
     if (!pago) return json({ ok: false, error: 'Ese pago no existe.' }, 404);
 
     const esVerificado = estado === 'verificado';
+    const fechaPago = pagadoEn || pago.reportado_en;
 
     await env.DB.prepare(
       `UPDATE pagos
@@ -59,7 +79,7 @@ export const onRequestPost: PagesFunction<AdminEnv> = async ({ request, env, par
       .bind(
         estado,
         esVerificado ? 1 : 0,
-        pagadoEn || pago.reportado_en,
+        fechaPago,
         esVerificado ? 1 : 0,
         esVerificado ? 1 : 0,
         quienOpera(request),
@@ -67,6 +87,22 @@ export const onRequestPost: PagesFunction<AdminEnv> = async ({ request, env, par
         id
       )
       .run();
+
+    // Se manda siempre que se marque como verificado, incluso si ya lo estaba
+    // (ej. lo destocaron y lo volvieron a confirmar) — es una acción explícita
+    // del equipo, no un cambio de estado silencioso.
+    if (esVerificado) {
+      const { enviado, error: errorMail } = await enviarPagoVerificado(env, {
+        numero: pago.inscripcion_id,
+        nombreCompleto: pago.nombre_completo,
+        email: pago.email,
+        pagoDescripcion: pago.descripcion,
+        pagoMonto: pago.monto,
+        metodo: pago.metodo,
+        pagadoEn: fechaPago
+      });
+      if (!enviado) console.error('No se pudo enviar el mail de pago verificado:', errorMail);
+    }
 
     return json({ ok: true }, 200);
   } catch (err) {
