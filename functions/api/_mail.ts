@@ -13,6 +13,7 @@ interface EnvMail {
 
 const REMITENTE = 'Alegría Retreats <inscripciones@alegriabewell.com>';
 const RESPONDER_A = 'hello.alegriabewell@gmail.com';
+const SITE_URL = 'https://formulario-retiro-2026.pages.dev';
 
 const escaparHtml = (valor: string): string =>
   valor
@@ -47,6 +48,27 @@ interface ResultadoEnvio {
   enviado: boolean;
   error?: string;
 }
+
+/** Botón "Ver mi inscripción" — el link personal a /mi-inscripcion, sin login. */
+const bloquePortal = (token: string | null): string => {
+  if (!token) return '';
+  return `
+    <div style="text-align:center;margin:24px 0 4px;">
+      <a href="${SITE_URL}/mi-inscripcion/?t=${token}"
+         style="display:inline-block;padding:12px 28px;background:#5D2304;color:#FCF9F2;text-decoration:none;border-radius:999px;font-size:13px;font-weight:600;">
+        Ver el estado de mi inscripción
+      </a>
+    </div>`;
+};
+
+/** Botón "Agregar al calendario" — descarga un .ics fijo con las fechas del retiro. */
+const bloqueCalendario = (): string => `
+  <div style="text-align:center;margin:8px 0 4px;">
+    <a href="${SITE_URL}/api/calendario.ics"
+       style="display:inline-block;padding:12px 28px;background:#ffffff;color:#5D2304;text-decoration:none;border:1.5px solid #5D2304;border-radius:999px;font-size:13px;font-weight:600;">
+      + Agregar al calendario
+    </a>
+  </div>`;
 
 async function enviarMail(
   env: EnvMail,
@@ -95,6 +117,7 @@ export interface DatosMailConfirmacion {
   pagoDescripcion: string;
   pagoMonto: number | null;
   metodo: string;
+  token: string | null;
 }
 
 /** Mail al completar el formulario: "recibimos tu inscripción, la vamos a revisar". */
@@ -141,7 +164,9 @@ export async function enviarConfirmacionInscripcion(
 
     <p style="margin:0;color:#5C4A3A;font-size:13px;line-height:1.6;">
       ¿Alguna duda? Respondé este mismo mail y te contestamos.
-    </p>`
+    </p>
+    ${bloquePortal(datos.token)}
+    ${bloqueCalendario()}`
   );
 
   return enviarMail(env, {
@@ -159,6 +184,7 @@ export interface DatosMailPagoVerificado {
   pagoMonto: number | null;
   metodo: string;
   pagadoEn: string | null;
+  token: string | null;
 }
 
 /** Mail al verificar un pago desde el panel: "tu lugar quedó confirmado". */
@@ -198,7 +224,9 @@ export async function enviarPagoVerificado(
     <p style="margin:0;color:#5C4A3A;font-size:13px;line-height:1.6;">
       Si hiciste esta inscripción en cuotas, recordá completar el pago restante antes del
       retiro. Cualquier duda, respondé este mismo mail.
-    </p>`
+    </p>
+    ${bloquePortal(datos.token)}
+    ${bloqueCalendario()}`
   );
 
   return enviarMail(env, {
@@ -214,6 +242,7 @@ export interface DatosMailPagoRechazado {
   email: string;
   pagoDescripcion: string;
   nota: string | null;
+  token: string | null;
 }
 
 /**
@@ -251,7 +280,8 @@ export async function enviarPagoRechazado(
       la transferencia, y lo resolvemos juntas a la brevedad.
     </p>
 
-    <p style="margin:0;color:#8a7a68;font-size:12px;">N.º de inscripción #${String(datos.numero).padStart(3, '0')}</p>`
+    <p style="margin:0;color:#8a7a68;font-size:12px;">N.º de inscripción #${String(datos.numero).padStart(3, '0')}</p>
+    ${bloquePortal(datos.token)}`
   );
 
   return enviarMail(env, {
@@ -266,6 +296,7 @@ export interface DatosMailRecordatorio {
   nombreCompleto: string;
   email: string;
   detalle: string;
+  token: string | null;
 }
 
 /** Mail de recordatorio de pago pendiente, disparado a mano desde el panel. */
@@ -300,7 +331,8 @@ export async function enviarRecordatorioPago(
     <p style="margin:0;color:#5C4A3A;font-size:13px;line-height:1.6;">
       Cuando hagas la transferencia, respondé este mismo mail con la captura del comprobante y
       te confirmamos enseguida. ¡Gracias!
-    </p>`
+    </p>
+    ${bloquePortal(datos.token)}`
   );
 
   return enviarMail(env, {

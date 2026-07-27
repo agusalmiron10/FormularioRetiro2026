@@ -46,7 +46,7 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
   try {
     const pago = await env.DB.prepare(
       `SELECT p.id, p.estado, p.reportado_en, p.descripcion, p.monto, p.metodo, p.inscripcion_id,
-              i.nombre_completo, i.email
+              i.nombre_completo, i.email, i.token_publico
          FROM pagos p JOIN inscripciones i ON i.id = p.inscripcion_id
         WHERE p.id = ?`
     )
@@ -61,6 +61,7 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
         inscripcion_id: number;
         nombre_completo: string;
         email: string;
+        token_publico: string | null;
       }>();
 
     if (!pago) return json({ ok: false, error: 'Ese pago no existe.' }, 404);
@@ -110,7 +111,8 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
           pagoDescripcion: pago.descripcion,
           pagoMonto: pago.monto,
           metodo: pago.metodo,
-          pagadoEn: fechaPago
+          pagadoEn: fechaPago,
+          token: pago.token_publico
         });
         if (!enviado) console.error('No se pudo enviar el mail de pago verificado:', errorMail);
         mailEnviado = enviado;
@@ -120,7 +122,8 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
           nombreCompleto: pago.nombre_completo,
           email: pago.email,
           pagoDescripcion: pago.descripcion,
-          nota: String(cuerpo.nota ?? '').trim() || null
+          nota: String(cuerpo.nota ?? '').trim() || null,
+          token: pago.token_publico
         });
         if (!enviado) console.error('No se pudo enviar el mail de pago rechazado:', errorMail);
         mailEnviado = enviado;

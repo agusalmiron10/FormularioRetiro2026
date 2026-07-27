@@ -5,29 +5,33 @@ import path from 'path';
 import {defineConfig, type Plugin} from 'vite';
 
 /**
- * Publica el panel en /admin como página real.
+ * Publica /admin y /mi-inscripcion como páginas reales.
  *
  * No se puede resolver con una regla de _redirects: Cloudflare Pages
  * canonicaliza cualquier ruta que termine en /index.html y la redirige a /,
  * así que la reescritura nunca llega al SPA. Con un index.html propio en
- * dist/admin/ la ruta se sirve como archivo estático y el enrutado del
- * cliente hace el resto.
+ * cada carpeta, la ruta se sirve como archivo estático y el enrutado del
+ * cliente (main.tsx, según pathname) hace el resto.
  */
-const paginaAdmin = (): Plugin => ({
-  name: 'pagina-admin',
+const RUTAS_PROPIAS = ['admin', 'mi-inscripcion'];
+
+const paginasPropias = (): Plugin => ({
+  name: 'paginas-propias',
   closeBundle() {
     const dist = path.resolve(__dirname, 'dist');
     const origen = path.join(dist, 'index.html');
     if (!fs.existsSync(origen)) return;
-    const destino = path.join(dist, 'admin');
-    fs.mkdirSync(destino, {recursive: true});
-    fs.copyFileSync(origen, path.join(destino, 'index.html'));
+    for (const ruta of RUTAS_PROPIAS) {
+      const destino = path.join(dist, ruta);
+      fs.mkdirSync(destino, {recursive: true});
+      fs.copyFileSync(origen, path.join(destino, 'index.html'));
+    }
   },
 });
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss(), paginaAdmin()],
+    plugins: [react(), tailwindcss(), paginasPropias()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

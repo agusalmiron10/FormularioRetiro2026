@@ -100,8 +100,8 @@ export const onRequestPost: PagesFunction<AdminEnv> = async ({ request, env }) =
            apoyo_otras_mujeres, condicion_medica, preferencia_habitacion,
            transporte, oracion, expectativas, expectativas_otro, como_se_entero,
            confirma_reserva, confirma_cancelacion, confirma_terminos, comentarios,
-           creado_en
-         ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, COALESCE(?, datetime('now')))
+           creado_en, token_publico
+         ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, COALESCE(?, datetime('now')), ?)
          RETURNING id`
       )
         .bind(
@@ -129,7 +129,8 @@ export const onRequestPost: PagesFunction<AdminEnv> = async ({ request, env }) =
           1,
           1,
           texto(fila.comentarios) || null,
-          creadoEn ?? null
+          creadoEn ?? null,
+          crypto.randomUUID()
         )
         .first<{ id: number }>();
 

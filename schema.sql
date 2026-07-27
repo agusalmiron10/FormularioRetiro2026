@@ -36,8 +36,15 @@ CREATE TABLE IF NOT EXISTS inscripciones (
   confirma_terminos             INTEGER NOT NULL DEFAULT 0,
   comentarios                   TEXT,
 
-  creado_en                     TEXT NOT NULL DEFAULT (datetime('now'))
+  creado_en                     TEXT NOT NULL DEFAULT (datetime('now')),
+
+  -- Identifica el link personal "ver mi inscripción" (/mi-inscripcion?t=...).
+  -- No es un ID incremental a propósito: no debe poder adivinarse la
+  -- inscripción de otra persona probando números.
+  token_publico                 TEXT
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_inscripciones_token ON inscripciones(token_publico);
 
 -- Una inscripción puede tener varios pagos (1ra cuota, 2da cuota, donación...).
 CREATE TABLE IF NOT EXISTS pagos (

@@ -170,10 +170,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     // (el caso típico: vuelve en agosto a pagar la segunda cuota). Se conservan
     // los datos originales y sólo se agrega el pago.
     const yaInscripta = await env.DB.prepare(
-      'SELECT id FROM inscripciones WHERE email = ? ORDER BY id LIMIT 1'
+      'SELECT id, token_publico FROM inscripciones WHERE email = ? ORDER BY id LIMIT 1'
     )
       .bind(email)
-      .first<{ id: number }>();
+      .first<{ id: number; token_publico: string | null }>();
 
     const inscripcion = yaInscripta
       ? yaInscripta
@@ -184,9 +184,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
          idioma, origen_viaje, dieta, dieta_otro,
          apoyo_otras_mujeres, condicion_medica, preferencia_habitacion,
          transporte, oracion, expectativas, expectativas_otro, como_se_entero,
-         confirma_reserva, confirma_cancelacion, confirma_terminos, comentarios
-       ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-       RETURNING id`
+         confirma_reserva, confirma_cancelacion, confirma_terminos, comentarios,
+         token_publico
+       ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       RETURNING id, token_publico`
     )
       .bind(
         texto(datos.fullName),
@@ -212,9 +213,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         1,
         1,
         1,
-        texto(datos.comments) || null
+        texto(datos.comments) || null,
+        crypto.randomUUID()
       )
-      .first<{ id: number }>();
+      .first<{ id: number; token_publico: string | null }>();
 
     if (!inscripcion) throw new Error('La inserción no devolvió id');
 
@@ -247,7 +249,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       idioma: texto(datos.language) || 'es',
       pagoDescripcion: opcion!.descripcion,
       pagoMonto: opcion!.monto,
-      metodo
+      metodo,
+      token: inscripcion.token_publico
     });
     if (!enviado) console.error('No se pudo enviar el mail de confirmación:', errorMail);
 

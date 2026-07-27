@@ -35,10 +35,10 @@ export const onRequestPost: PagesFunction<EnvRecordatorio> = async ({ request, e
   }
 
   const inscripcion = await env.DB.prepare(
-    'SELECT id, nombre_completo, email FROM inscripciones WHERE id = ?'
+    'SELECT id, nombre_completo, email, token_publico FROM inscripciones WHERE id = ?'
   )
     .bind(id)
-    .first<{ id: number; nombre_completo: string; email: string }>();
+    .first<{ id: number; nombre_completo: string; email: string; token_publico: string | null }>();
 
   if (!inscripcion) return json({ ok: false, error: 'Esa inscripción no existe.' }, 404);
 
@@ -46,7 +46,8 @@ export const onRequestPost: PagesFunction<EnvRecordatorio> = async ({ request, e
     numero: inscripcion.id,
     nombreCompleto: inscripcion.nombre_completo,
     email: inscripcion.email,
-    detalle
+    detalle,
+    token: inscripcion.token_publico
   });
 
   if (!enviado) {

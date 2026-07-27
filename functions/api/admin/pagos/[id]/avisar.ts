@@ -26,7 +26,7 @@ export const onRequestPost: PagesFunction<EnvAvisar> = async ({ request, env, pa
 
   const pago = await env.DB.prepare(
     `SELECT p.id, p.estado, p.descripcion, p.monto, p.metodo, p.pagado_en, p.reportado_en,
-            p.nota_admin, p.inscripcion_id, i.nombre_completo, i.email
+            p.nota_admin, p.inscripcion_id, i.nombre_completo, i.email, i.token_publico
        FROM pagos p JOIN inscripciones i ON i.id = p.inscripcion_id
       WHERE p.id = ?`
   )
@@ -43,6 +43,7 @@ export const onRequestPost: PagesFunction<EnvAvisar> = async ({ request, env, pa
       inscripcion_id: number;
       nombre_completo: string;
       email: string;
+      token_publico: string | null;
     }>();
 
   if (!pago) return json({ ok: false, error: 'Ese pago no existe.' }, 404);
@@ -60,14 +61,16 @@ export const onRequestPost: PagesFunction<EnvAvisar> = async ({ request, env, pa
           pagoDescripcion: pago.descripcion,
           pagoMonto: pago.monto,
           metodo: pago.metodo,
-          pagadoEn: pago.pagado_en || pago.reportado_en
+          pagadoEn: pago.pagado_en || pago.reportado_en,
+          token: pago.token_publico
         })
       : await enviarPagoRechazado(env, {
           numero: pago.inscripcion_id,
           nombreCompleto: pago.nombre_completo,
           email: pago.email,
           pagoDescripcion: pago.descripcion,
-          nota: pago.nota_admin
+          nota: pago.nota_admin,
+          token: pago.token_publico
         });
 
   if (!resultado.enviado) {

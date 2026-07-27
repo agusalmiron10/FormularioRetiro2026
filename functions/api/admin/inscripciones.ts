@@ -170,11 +170,11 @@ export const onRequestPost: PagesFunction<AdminEnv> = async ({ request, env }) =
         contacto_emergencia_nombre, contacto_emergencia_telefono, idioma,
         origen_viaje, dieta, dieta_otro, apoyo_otras_mujeres, condicion_medica,
         preferencia_habitacion, transporte, oracion, expectativas, expectativas_otro,
-        como_se_entero, comentarios
-      ) VALUES (?, ?, ?, '', '', '', '', '', '', '[]', '', '', '', '', '', '', '[]', '', '', '')
+        como_se_entero, comentarios, token_publico
+      ) VALUES (?, ?, ?, '', '', '', '', '', '', '[]', '', '', '', '', '', '', '[]', '', '', '', ?)
       RETURNING id`
     )
-      .bind(data.nombre_completo, data.email || '', data.telefono || '')
+      .bind(data.nombre_completo, data.email || '', data.telefono || '', crypto.randomUUID())
       .all();
 
     return json({ ok: true, id: results[0].id }, 200);
