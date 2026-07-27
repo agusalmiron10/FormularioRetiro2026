@@ -6,10 +6,12 @@
  */
 
 import { COMPROBANTE, OPCIONES_PAGO, extensionPara, json } from './_catalogo';
+import { enviarConfirmacionInscripcion } from './_mail';
 
 interface Env {
   DB: D1Database;
   COMPROBANTES: R2Bucket;
+  RESEND_API_KEY?: string;
 }
 
 interface Payload {
@@ -236,6 +238,18 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         'pendiente'
       )
       .run();
+
+    const { enviado, error: errorMail } = await enviarConfirmacionInscripcion(env, {
+      numero: inscripcion.id,
+      nombreCompleto: texto(datos.fullName),
+      email,
+      origenViaje: origen,
+      idioma: texto(datos.language) || 'es',
+      pagoDescripcion: opcion!.descripcion,
+      pagoMonto: opcion!.monto,
+      metodo
+    });
+    if (!enviado) console.error('No se pudo enviar el mail de confirmación:', errorMail);
 
     return json({ ok: true, numero: inscripcion.id, pagoAdicional: esPagoAdicional });
   } catch (err) {
