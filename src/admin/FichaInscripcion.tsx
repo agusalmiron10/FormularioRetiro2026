@@ -12,7 +12,9 @@ import {
   Loader2,
   Trophy,
   Undo2,
-  HeartPulse
+  HeartPulse,
+  Mail,
+  ShieldAlert
 } from 'lucide-react';
 import { Inscripcion, Pago, actualizarPago, urlComprobante } from './api';
 
@@ -22,11 +24,93 @@ const ESTILO_ESTADO: Record<Pago['estado'], string> = {
   rechazado: 'bg-red-100 text-red-700'
 };
 
+/** Confirmación antes de verificar/rechazar — ambas acciones mandan un mail real. */
+function ModalConfirmacion({
+  tipo,
+  nombreInscripta,
+  email,
+  pagoDescripcion,
+  guardando,
+  onCancelar,
+  onConfirmar
+}: {
+  tipo: 'verificado' | 'rechazado';
+  nombreInscripta: string;
+  email: string;
+  pagoDescripcion: string;
+  guardando: boolean;
+  onCancelar: () => void;
+  onConfirmar: () => void;
+}) {
+  const esVerificar = tipo === 'verificado';
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onCancelar}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm bg-white rounded-2xl border border-outline-variant/20 p-6 shadow-xl"
+      >
+        <div
+          className={`w-11 h-11 rounded-full flex items-center justify-center mb-4 ${
+            esVerificar ? 'bg-status-success/15 text-status-success' : 'bg-red-100 text-red-700'
+          }`}
+        >
+          {esVerificar ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
+        </div>
+
+        <h3 className="font-display text-xl text-primary mb-1.5">
+          {esVerificar ? '¿Confirmás que verificaste este pago?' : '¿Confirmás que rechazás este pago?'}
+        </h3>
+        <p className="font-sans text-sm text-on-surface-variant mb-4">
+          {pagoDescripcion} de <strong className="text-on-surface">{nombreInscripta}</strong>.
+        </p>
+
+        <div className="flex items-start gap-2 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 mb-5">
+          <Mail className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
+          <p className="font-sans text-xs text-on-surface-variant">
+            Se le va a enviar un mail a <strong>{email}</strong>{' '}
+            {esVerificar
+              ? 'avisando que su lugar quedó confirmado.'
+              : 'pidiéndole que aclare el pago.'}
+          </p>
+        </div>
+
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={onCancelar}
+            disabled={guardando}
+            className="px-4 py-2 rounded-full font-sans text-xs font-semibold text-tertiary hover:bg-surface-container-low transition-colors cursor-pointer disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirmar}
+            disabled={guardando}
+            className={`inline-flex items-center gap-1.5 px-5 py-2 rounded-full font-sans text-xs font-semibold text-white transition-opacity cursor-pointer disabled:opacity-50 ${
+              esVerificar ? 'bg-status-success hover:opacity-90' : 'bg-red-600 hover:opacity-90'
+            }`}
+          >
+            {guardando && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {esVerificar ? 'Sí, verificar' : 'Sí, rechazar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BloquePago({
   pago,
+  nombreInscripta,
+  email,
   onCambio
 }: {
   pago: Pago;
+  nombreInscripta: string;
+  email: string;
   onCambio: () => void;
   key?: number;
 }) {
@@ -34,6 +118,7 @@ function BloquePago({
   const [nota, setNota] = useState(pago.nota_admin ?? '');
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
+  const [confirmando, setConfirmando] = useState<'verificado' | 'rechazado' | null>(null);
 
   const cambiarEstado = async (estado: Pago['estado']) => {
     setGuardando(true);
@@ -45,6 +130,7 @@ function BloquePago({
       setError(err instanceof Error ? err.message : 'No pudimos guardar el cambio.');
     } finally {
       setGuardando(false);
+      setConfirmando(null);
     }
   };
 
@@ -148,15 +234,11 @@ function BloquePago({
         <div className="flex gap-2">
           {pago.estado !== 'verificado' && (
             <button
-              onClick={() => cambiarEstado('verificado')}
+              onClick={() => setConfirmando('verificado')}
               disabled={guardando}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-status-success text-white font-sans text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
             >
-              {guardando ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Check className="w-3.5 h-3.5" />
-              )}
+              <Check className="w-3.5 h-3.5" />
               Verificar
             </button>
           )}
@@ -167,14 +249,18 @@ function BloquePago({
               disabled={guardando}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-outline-variant text-tertiary font-sans text-xs font-semibold hover:border-primary hover:text-primary transition-colors cursor-pointer disabled:opacity-50"
             >
-              <Undo2 className="w-3.5 h-3.5" />
+              {guardando ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Undo2 className="w-3.5 h-3.5" />
+              )}
               Deshacer
             </button>
           )}
 
           {pago.estado !== 'rechazado' && (
             <button
-              onClick={() => cambiarEstado('rechazado')}
+              onClick={() => setConfirmando('rechazado')}
               disabled={guardando}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-red-200 text-red-600 font-sans text-xs font-semibold hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
             >
@@ -185,7 +271,24 @@ function BloquePago({
         </div>
       </div>
 
-      {error && <p className="text-red-600 text-xs font-semibold mt-3">{error}</p>}
+      {error && (
+        <p className="text-red-600 text-xs font-semibold mt-3 flex items-center gap-1.5">
+          <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+          {error}
+        </p>
+      )}
+
+      {confirmando && (
+        <ModalConfirmacion
+          tipo={confirmando}
+          nombreInscripta={nombreInscripta}
+          email={email}
+          pagoDescripcion={pago.descripcion}
+          guardando={guardando}
+          onCancelar={() => setConfirmando(null)}
+          onConfirmar={() => cambiarEstado(confirmando)}
+        />
+      )}
     </div>
   );
 }
@@ -275,7 +378,13 @@ export default function FichaInscripcion({
                 </p>
               ) : (
                 inscripcion.pagos.map((pago) => (
-                  <BloquePago key={pago.id} pago={pago} onCambio={onCambio} />
+                  <BloquePago
+                    key={pago.id}
+                    pago={pago}
+                    nombreInscripta={inscripcion.nombre_completo}
+                    email={inscripcion.email}
+                    onCambio={onCambio}
+                  />
                 ))
               )}
             </div>
