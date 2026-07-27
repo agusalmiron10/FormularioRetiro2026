@@ -20,6 +20,7 @@ export interface Pago {
   verificado_por: string | null;
   nota_admin: string | null;
   puesto: number | null;
+  mail_enviado: number;
 }
 
 export interface Inscripcion {
@@ -114,6 +115,9 @@ export const actualizarPago = (
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(cambios)
   });
+
+export const avisarPago = (id: number) =>
+  pedir<Record<string, never>>(`/api/admin/pagos/${id}/avisar`, { method: 'POST' });
 
 export const editarPago = (
   id: number,

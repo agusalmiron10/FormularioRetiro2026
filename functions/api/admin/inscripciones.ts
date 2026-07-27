@@ -49,6 +49,7 @@ interface FilaPago {
   verificado_en: string | null;
   verificado_por: string | null;
   nota_admin: string | null;
+  mail_enviado: number;
 }
 
 const listaDeJson = (valor: string | null): string[] => {

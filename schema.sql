@@ -62,7 +62,12 @@ CREATE TABLE IF NOT EXISTS pagos (
   pagado_en           TEXT,              -- fecha real del pago (PayPal la trae; en transferencia la fija el admin)
   verificado_en       TEXT,
   verificado_por      TEXT,
-  nota_admin          TEXT
+  nota_admin          TEXT,
+
+  -- 1 si ya se le mandó el mail de aviso correspondiente al estado actual
+  -- (verificado o rechazado). Se resetea a 0 cada vez que el estado cambia
+  -- de nuevo, para que el botón "Mandar aviso" sepa si hace falta avisar.
+  mail_enviado        INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_inscripciones_email    ON inscripciones(email);

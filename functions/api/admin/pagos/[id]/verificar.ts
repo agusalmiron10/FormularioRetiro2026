@@ -97,11 +97,12 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
     // útil para pagos viejos importados donde reenviar el aviso hoy sería
     // confuso.
     const notificar = cuerpo.notificar !== false;
-    if (estado !== estadoAnterior && !notificar) {
-      console.log(`Pago ${id}: cambio a "${estado}" sin notificar (marcado desde el panel).`);
-    }
-    if (estado !== estadoAnterior && notificar) {
-      if (estado === 'verificado') {
+    if (estado !== estadoAnterior) {
+      let mailEnviado = false;
+
+      if (!notificar) {
+        console.log(`Pago ${id}: cambio a "${estado}" sin notificar (marcado desde el panel).`);
+      } else if (estado === 'verificado') {
         const { enviado, error: errorMail } = await enviarPagoVerificado(env, {
           numero: pago.inscripcion_id,
           nombreCompleto: pago.nombre_completo,
@@ -112,6 +113,7 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
           pagadoEn: fechaPago
         });
         if (!enviado) console.error('No se pudo enviar el mail de pago verificado:', errorMail);
+        mailEnviado = enviado;
       } else if (estado === 'rechazado') {
         const { enviado, error: errorMail } = await enviarPagoRechazado(env, {
           numero: pago.inscripcion_id,
@@ -121,7 +123,14 @@ export const onRequestPost: PagesFunction<EnvVerificar> = async ({ request, env,
           nota: String(cuerpo.nota ?? '').trim() || null
         });
         if (!enviado) console.error('No se pudo enviar el mail de pago rechazado:', errorMail);
+        mailEnviado = enviado;
       }
+
+      // Se guarda si el aviso salió para ESTE estado — si el estado vuelve a
+      // cambiar, se resetea, y el botón "Mandar aviso" sabe cuándo ofrecerse.
+      await env.DB.prepare('UPDATE pagos SET mail_enviado = ? WHERE id = ?')
+        .bind(mailEnviado ? 1 : 0, id)
+        .run();
     }
 
     return json({ ok: true }, 200);

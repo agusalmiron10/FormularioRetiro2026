@@ -30,6 +30,7 @@ import {
   borrarInscripcion,
   editarPago,
   agregarPago,
+  avisarPago,
   urlComprobante
 } from './api';
 import { calcularRecordatorio } from './recordatorios';
@@ -190,6 +191,29 @@ function BloquePago({
     }
   };
 
+  const [avisando, setAvisando] = useState(false);
+  const [errorAviso, setErrorAviso] = useState('');
+
+  const mandarAviso = async () => {
+    if (
+      !window.confirm(
+        `¿Mandar a ${email} el mail de "${pago.estado === 'verificado' ? 'pago verificado' : 'necesitamos revisar tu pago'}"?`
+      )
+    ) {
+      return;
+    }
+    setAvisando(true);
+    setErrorAviso('');
+    try {
+      await avisarPago(pago.id);
+      onCambio();
+    } catch (err) {
+      setErrorAviso(err instanceof Error ? err.message : 'No pudimos mandar el mail.');
+    } finally {
+      setAvisando(false);
+    }
+  };
+
   const esImagen = pago.comprobante_tipo?.startsWith('image/');
 
   return (
@@ -208,10 +232,33 @@ function BloquePago({
                 Pago n.º {pago.puesto}
               </span>
             )}
+            {(pago.estado === 'verificado' || pago.estado === 'rechazado') &&
+              (pago.mail_enviado ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-status-success/10 text-status-success font-sans text-[10px] font-bold uppercase tracking-wider">
+                  <Mail className="w-3 h-3" />
+                  Avisada
+                </span>
+              ) : (
+                <button
+                  onClick={mandarAviso}
+                  disabled={avisando}
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-terracotta-soft/15 text-terracotta-soft font-sans text-[10px] font-bold uppercase tracking-wider hover:bg-terracotta-soft/25 transition-colors cursor-pointer disabled:opacity-50"
+                  title="Todavía no se le mandó el mail de este estado"
+                >
+                  {avisando ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
+                  Sin avisar — mandar
+                </button>
+              ))}
             <span className="font-sans text-[11px] text-tertiary uppercase tracking-wider">
               {pago.metodo}
             </span>
           </div>
+          {errorAviso && (
+            <p className="text-red-600 text-[11px] font-semibold mt-1 flex items-center gap-1">
+              <ShieldAlert className="w-3 h-3 shrink-0" />
+              {errorAviso}
+            </p>
+          )}
           {editandoPago ? (
             <input
               type="text"
