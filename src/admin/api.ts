@@ -137,6 +137,13 @@ export const crearInscripcionManual = (datos: { nombre_completo: string; email: 
     body: JSON.stringify(datos)
   });
 
+export const enviarRecordatorio = (id: number, detalle: string) =>
+  pedir<Record<string, never>>(`/api/admin/inscripciones/${id}/recordatorio`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ detalle })
+  });
+
 export const importarInscripciones = (filas: unknown[]) =>
   pedir<{ insertadas: number; omitidas: { email: string; motivo: string }[] }>(
     '/api/admin/importar',

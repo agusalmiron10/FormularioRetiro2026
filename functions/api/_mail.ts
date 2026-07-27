@@ -260,3 +260,52 @@ export async function enviarPagoRechazado(
     html
   });
 }
+
+export interface DatosMailRecordatorio {
+  numero: number;
+  nombreCompleto: string;
+  email: string;
+  detalle: string;
+}
+
+/** Mail de recordatorio de pago pendiente, disparado a mano desde el panel. */
+export async function enviarRecordatorioPago(
+  env: EnvMail,
+  datos: DatosMailRecordatorio
+): Promise<ResultadoEnvio> {
+  const primerNombre = datos.nombreCompleto.trim().split(/\s+/)[0] || 'Hermana';
+
+  const html = plantilla(
+    'Recordatorio de pago',
+    `
+    <h2 style="margin:0 0 12px;color:#5D2304;font-size:20px;">¡Hola ${escaparHtml(primerNombre)}!</h2>
+    <p style="margin:0 0 20px;color:#5C4A3A;font-size:14px;line-height:1.6;">
+      Te escribimos de Alegría Retreats por tu inscripción a <strong>Renueva 2026</strong>
+      (#${String(datos.numero).padStart(3, '0')}). Vemos que ${escaparHtml(datos.detalle)} para
+      confirmar tu lugar en el retiro.
+    </p>
+
+    <div style="background:#FDF5ED;border:1px solid #ECDCCA;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+      <p style="margin:0 0 8px;color:#8a7a68;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">
+        Datos para transferir
+      </p>
+      <table style="width:100%;border-collapse:collapse;">
+        ${linea('Titular', 'Alegria BeWell House')}
+        ${linea('BSB', '062559')}
+        ${linea('Cuenta', '10485590')}
+        ${linea('Referencia', 'Tu nombre completo + RENUEVA')}
+      </table>
+    </div>
+
+    <p style="margin:0;color:#5C4A3A;font-size:13px;line-height:1.6;">
+      Cuando hagas la transferencia, respondé este mismo mail con la captura del comprobante y
+      te confirmamos enseguida. ¡Gracias!
+    </p>`
+  );
+
+  return enviarMail(env, {
+    to: datos.email,
+    subject: `Recordatorio de pago · Renueva 2026 · #${String(datos.numero).padStart(3, '0')}`,
+    html
+  });
+}

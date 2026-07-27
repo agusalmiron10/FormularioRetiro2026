@@ -23,7 +23,7 @@ import {
   AlertTriangle,
   Clock,
   Printer,
-  MessageCircle,
+  Mail,
   Upload
 } from 'lucide-react';
 import {
@@ -37,20 +37,26 @@ import {
   leerToken,
   urlExport
 } from './api';
-import { Recordatorio, calcularRecordatorio, urlWhatsapp } from './recordatorios';
+import { Recordatorio, calcularRecordatorio } from './recordatorios';
 import FichaInscripcion from './FichaInscripcion';
 import ModalImportarExcel from './ModalImportarExcel';
+import ModalRecordatorio from './ModalRecordatorio';
 
-const VERDE_WHATSAPP = '#25D366';
-const VERDE_WHATSAPP_TEXTO = '#128C4A';
+const COLOR_RECORDATORIOS = '#5D2304';
 
 function ModalRecordatorios({
   inscripciones,
-  onCerrar
+  onCerrar,
+  onCambio
 }: {
   inscripciones: Inscripcion[];
   onCerrar: () => void;
+  onCambio: () => void;
 }) {
+  const [enviarA, setEnviarA] = useState<{ inscripcion: Inscripcion; recordatorio: Recordatorio } | null>(
+    null
+  );
+
   const pendientes = inscripciones
     .map((inscripcion) => ({ inscripcion, recordatorio: calcularRecordatorio(inscripcion) }))
     .filter(
@@ -65,13 +71,12 @@ function ModalRecordatorios({
         className="w-full max-w-lg bg-white rounded-2xl border border-outline-variant/20 p-6 shadow-xl max-h-[85vh] overflow-y-auto"
       >
         <h3 className="font-display text-xl text-primary mb-1.5 flex items-center gap-2">
-          <MessageCircle className="w-5 h-5" style={{ color: VERDE_WHATSAPP_TEXTO }} />
+          <Mail className="w-5 h-5" style={{ color: COLOR_RECORDATORIOS }} />
           Recordatorios de pago
         </h3>
         <p className="font-sans text-xs text-on-surface-variant mb-5 leading-relaxed">
-          WhatsApp no deja que un botón mande mensajes en cadena sola: hay que confirmar cada
-          envío. Cada "Abrir" abre el chat con el mensaje ya escrito según lo que debe esa
-          persona — solo falta apretar enviar adentro de WhatsApp.
+          Cada "Mandar mail" te muestra una vista previa y recién al confirmar sale el mail — no
+          se manda nada sin que lo apruebes antes.
         </p>
 
         {pendientes.length === 0 ? (
@@ -90,26 +95,17 @@ function ModalRecordatorios({
                     {inscripcion.nombre_completo}
                   </p>
                   <p className="font-sans text-xs text-on-surface-variant truncate">
-                    {recordatorio.telefono ? inscripcion.telefono : 'Sin teléfono cargado'} ·{' '}
-                    {recordatorio.detalle}
+                    {inscripcion.email} · {recordatorio.detalle}
                   </p>
                 </div>
-                {recordatorio.telefono ? (
-                  <a
-                    href={urlWhatsapp(recordatorio.telefono, recordatorio.mensaje)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-white font-sans text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-                    style={{ backgroundColor: VERDE_WHATSAPP }}
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    Abrir
-                  </a>
-                ) : (
-                  <span className="shrink-0 font-sans text-[11px] text-tertiary italic">
-                    Sin teléfono
-                  </span>
-                )}
+                <button
+                  onClick={() => setEnviarA({ inscripcion, recordatorio })}
+                  className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-white font-sans text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                  style={{ backgroundColor: COLOR_RECORDATORIOS }}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  Mandar mail
+                </button>
               </div>
             ))}
           </div>
@@ -124,6 +120,15 @@ function ModalRecordatorios({
           </button>
         </div>
       </div>
+
+      {enviarA && (
+        <ModalRecordatorio
+          inscripcion={enviarA.inscripcion}
+          recordatorio={enviarA.recordatorio}
+          onCerrar={() => setEnviarA(null)}
+          onEnviado={onCambio}
+        />
+      )}
     </div>
   );
 }
@@ -575,9 +580,9 @@ export default function AdminApp() {
           <button
             onClick={() => setModalRecordatorios(true)}
             className="flex items-center gap-2 px-4 py-3 text-white font-sans text-xs font-semibold rounded-full hover:opacity-90 transition-opacity shadow-sm cursor-pointer whitespace-nowrap"
-            style={{ backgroundColor: VERDE_WHATSAPP }}
+            style={{ backgroundColor: COLOR_RECORDATORIOS }}
           >
-            <MessageCircle className="w-4 h-4" />
+            <Mail className="w-4 h-4" />
             Recordatorios
             {cuentaDeudoras > 0 && (
               <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-white/25 text-white">
@@ -714,11 +719,12 @@ export default function AdminApp() {
         </table>
       </div>
 
-      {/* Modal Recordatorios por WhatsApp */}
+      {/* Modal Recordatorios de pago por mail */}
       {modalRecordatorios && (
         <ModalRecordatorios
           inscripciones={datos?.inscripciones ?? []}
           onCerrar={() => setModalRecordatorios(false)}
+          onCambio={refrescar}
         />
       )}
 

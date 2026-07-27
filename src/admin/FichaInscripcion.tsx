@@ -15,17 +15,17 @@ import {
   Undo2,
   HeartPulse,
   Mail,
-  MessageCircle,
   ShieldAlert,
   Edit3,
   Save,
   Trash2
 } from 'lucide-react';
 import { Inscripcion, Pago, actualizarPago, actualizarInscripcion, borrarInscripcion, urlComprobante } from './api';
-import { calcularRecordatorio, urlWhatsapp } from './recordatorios';
+import { calcularRecordatorio } from './recordatorios';
+import ModalRecordatorio from './ModalRecordatorio';
 
-const VERDE_WHATSAPP = '#25D366';
-const VERDE_WHATSAPP_TEXTO = '#128C4A';
+const COLOR_DEBE = '#B45309';
+const COLOR_DEBE_FONDO = 'rgba(180, 83, 9, 0.12)';
 
 const ESTILO_ESTADO: Record<Pago['estado'], string> = {
   verificado: 'bg-status-success/15 text-status-success',
@@ -436,16 +436,12 @@ export default function FichaInscripcion({
   const [abierta, setAbierta] = useState(false);
   const [editando, setEditando] = useState(false);
   const [borrando, setBorrando] = useState(false);
+  const [modalRecordatorio, setModalRecordatorio] = useState(false);
   const recordatorio = calcularRecordatorio(inscripcion);
 
-  const enviarWhatsapp = (e: MouseEvent) => {
+  const abrirRecordatorio = (e: MouseEvent) => {
     e.stopPropagation();
-    if (!recordatorio?.telefono) return;
-    window.open(
-      urlWhatsapp(recordatorio.telefono, recordatorio.mensaje),
-      '_blank',
-      'noopener,noreferrer'
-    );
+    setModalRecordatorio(true);
   };
 
   const handleBorrar = async () => {
@@ -484,7 +480,7 @@ export default function FichaInscripcion({
             {recordatorio && (
               <span
                 className="px-2 py-0.5 rounded-full font-sans text-[10px] font-bold uppercase tracking-wider"
-                style={{ backgroundColor: `${VERDE_WHATSAPP}26`, color: VERDE_WHATSAPP_TEXTO }}
+                style={{ backgroundColor: COLOR_DEBE_FONDO, color: COLOR_DEBE }}
               >
                 Debe{recordatorio.monto ? ` $${recordatorio.monto}` : ''}
               </span>
@@ -506,14 +502,14 @@ export default function FichaInscripcion({
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          {recordatorio?.telefono && (
+          {recordatorio && (
             <button
-              onClick={enviarWhatsapp}
-              title="Recordar por WhatsApp"
-              className="p-2 rounded-full transition-colors cursor-pointer"
-              style={{ backgroundColor: `${VERDE_WHATSAPP}1A`, color: VERDE_WHATSAPP_TEXTO }}
+              onClick={abrirRecordatorio}
+              title="Recordar por mail"
+              className="p-2 rounded-full transition-colors cursor-pointer hover:opacity-80"
+              style={{ backgroundColor: 'rgba(93, 35, 4, 0.1)', color: '#5D2304' }}
             >
-              <MessageCircle className="w-4 h-4" />
+              <Mail className="w-4 h-4" />
             </button>
           )}
           <div className="text-right">
@@ -663,6 +659,14 @@ export default function FichaInscripcion({
             setEditando(false);
             onCambio();
           }}
+        />
+      )}
+
+      {modalRecordatorio && recordatorio && (
+        <ModalRecordatorio
+          inscripcion={inscripcion}
+          recordatorio={recordatorio}
+          onCerrar={() => setModalRecordatorio(false)}
         />
       )}
     </article>
