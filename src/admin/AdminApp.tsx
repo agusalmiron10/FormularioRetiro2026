@@ -38,7 +38,7 @@ import {
   urlExport
 } from './api';
 import { Recordatorio, calcularRecordatorio } from './recordatorios';
-import FichaInscripcion from './FichaInscripcion';
+import FilaInscripcion, { DetalleInscripcion } from './FichaInscripcion';
 import ModalImportarExcel from './ModalImportarExcel';
 import ModalRecordatorio from './ModalRecordatorio';
 
@@ -357,6 +357,31 @@ export default function AdminApp() {
   const [modalRecordatorios, setModalRecordatorios] = useState(false);
   const [modalImportar, setModalImportar] = useState(false);
 
+  // Cada inscripta tiene su propia "pantalla" de detalle, en vez de un
+  // acordeón dentro de la lista larga — se navega por query string (?ver=id)
+  // para que el botón "atrás" del navegador también funcione.
+  const idDesdeUrl = () => {
+    const n = Number(new URLSearchParams(window.location.search).get('ver'));
+    return Number.isInteger(n) && n > 0 ? n : null;
+  };
+  const [verId, setVerId] = useState<number | null>(idDesdeUrl);
+
+  useEffect(() => {
+    const sincronizar = () => setVerId(idDesdeUrl());
+    window.addEventListener('popstate', sincronizar);
+    return () => window.removeEventListener('popstate', sincronizar);
+  }, []);
+
+  const abrirDetalle = (id: number) => {
+    window.history.pushState({}, '', `?ver=${id}`);
+    setVerId(id);
+  };
+
+  const volverALista = () => {
+    window.history.pushState({}, '', window.location.pathname);
+    setVerId(null);
+  };
+
   // Cuenta regresiva
   const fechaRetiro = new Date('2026-09-11T00:00:00');
   const hoy = new Date();
@@ -508,6 +533,14 @@ export default function AdminApp() {
 
       {/* Vista principal (oculta al imprimir) */}
       <main className="max-w-6xl mx-auto px-4 md:px-8 py-8 print:hidden">
+        {verId && datos?.inscripciones.find((i) => i.id === verId) ? (
+          <DetalleInscripcion
+            inscripcion={datos.inscripciones.find((i) => i.id === verId)!}
+            onCambio={refrescar}
+            onVolver={volverALista}
+          />
+        ) : (
+          <>
         {resumen && (
           <>
             {/* Tarjetas de resumen */}
@@ -661,13 +694,11 @@ export default function AdminApp() {
               return 0;
             })
             .map((inscripcion) => (
-            <FichaInscripcion
-              key={inscripcion.id}
-              inscripcion={inscripcion}
-              onCambio={refrescar}
-            />
+            <FilaInscripcion key={inscripcion.id} inscripcion={inscripcion} onAbrir={abrirDetalle} />
           ))}
         </div>
+          </>
+        )}
       </main>
 
       {/* Vista de impresión (oculta en pantalla) */}
