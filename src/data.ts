@@ -56,8 +56,6 @@ export const PAYMENT_OPTIONS: {
   amount: number | null;
 }[] = [
   { id: 'early-full', label: 'Precio anticipado — Pago completo $450', group: 'anticipado', amount: 450 },
-  { id: 'early-1', label: 'Precio anticipado — Primera cuota $225', group: 'anticipado', amount: 225 },
-  { id: 'early-2', label: 'Precio anticipado — Segunda cuota $225', group: 'anticipado', amount: 225 },
   { id: 'regular-full', label: 'Precio regular — Pago completo $480', group: 'regular', amount: 480 },
   { id: 'volunteer-full', label: 'Voluntaria — Pago completo', group: 'voluntaria', amount: null },
   { id: 'volunteer-1', label: 'Voluntaria — Primera cuota', group: 'voluntaria', amount: null },
