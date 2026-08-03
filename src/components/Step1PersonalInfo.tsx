@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Shield, Sparkles, Check, Bookmark } from 'lucide-react';
+import { Shield, Sparkles, Check, Bookmark, Info } from 'lucide-react';
 import { RegistrationData } from '../types';
 import { motion } from 'motion/react';
 import { useLanguage } from '../context/LanguageContext';
@@ -206,7 +206,64 @@ export default function Step1PersonalInfo({
           </div>
         </div>
 
+        {/* Política / Confirmación / Contacto */}
+        <section className="p-6 rounded-2xl border border-outline-variant/40 bg-cream-base/50 space-y-3">
+          <div className="flex gap-3">
+            <Info className="w-5 h-5 text-terracotta-soft mt-0.5 flex-shrink-0" />
+            <div className="space-y-3">
+              <h3 className="font-sans text-sm font-bold text-terracotta-soft">
+                Política de Cancelación:
+              </h3>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                Debido a los compromisos asumidos con el lugar del retiro y a la planificación
+                anticipada de todos los servicios, los depósitos y pagos realizados no son
+                reembolsables. Sin embargo, si no podés asistir, podrás transferir tu lugar a otra
+                participante, previa coordinación y aprobación de la organización.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                Para asegurar tu lugar en el retiro, se requiere el pago total o la primera cuota al
+                momento de registrarte.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                En el caso de elegir el Precio Anticipado, el pago total deberá completarse antes
+                del 31 de julio de 2026.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                Desde el 1 de agosto de 2026, las inscripciones correspondientes al Precio Regular
+                deberán abonarse en su totalidad al momento de registrarte.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                Agradecemos tu comprensión y tu compromiso, que nos permiten organizar el
+                retiro con responsabilidad y cuidado, y seguir bendiciendo a más mujeres a través
+                de Alegría Retreats.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                <span className="font-bold text-on-surface">Confirmación de Registro:</span>{" "}
+                Una vez que recibamos tu formulario de registro y tu pago, te enviaremos un correo
+                electrónico de confirmación.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                Más cerca de la fecha del retiro recibirás por email todos los detalles logísticos,
+                recomendaciones y materiales necesarios para vivir esta experiencia con tranquilidad.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                <span className="font-bold text-on-surface">¿Dudas o preguntas?</span>{" "}
+                Si necesitás más información, podés contactarnos por WhatsApp al{" "}
+                <a
+                  href="https://wa.me/58422351193"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline hover:text-primary/80 transition-colors"
+                >
+                  0422 351 193
+                </a>.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Action buttons */}
+
         <div className="pt-6 flex flex-col sm:flex-row justify-end items-center gap-4 border-t border-primary/10">
           <button 
             type="button"

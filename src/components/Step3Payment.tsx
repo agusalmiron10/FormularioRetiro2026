@@ -20,7 +20,6 @@ import {
 import { RegistrationData, PaymentProof } from '../types';
 import {
   BANK_DETAILS,
-  INCLUSIONS,
   PAYMENT_OPTIONS,
   PROOF_RULES,
   SPONSORSHIP_OPTIONS
@@ -184,19 +183,84 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
         </p>
       </div>
 
-      {/* Qué incluye */}
-      <section className="bg-white p-6 rounded-2xl border border-primary/5 shadow-sm mb-8">
-        <h2 className="font-sans text-xs font-bold text-secondary mb-4 uppercase tracking-wider">
-          Tu inscripción incluye
+      {/* Detalles de Registro y Pago */}
+      <section className="bg-white p-6 rounded-2xl border border-primary/5 shadow-sm mb-8 space-y-4 font-sans text-sm text-on-surface-variant">
+        <h2 className="font-sans text-xs font-bold text-on-surface uppercase tracking-wider">
+          Detalles de Registro y Pago:
         </h2>
-        <ul className="space-y-2.5">
-          {INCLUSIONS.map((item) => (
-            <li key={item} className="flex items-start gap-2.5 font-sans text-sm text-on-surface-variant">
-              <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
-              {t(item)}
-            </li>
-          ))}
-        </ul>
+        <p>
+          La inscripción incluye alojamiento por 2 noches, todas las comidas, materiales y regalos.
+        </p>
+
+        <div className="space-y-2">
+          <p className="font-bold text-on-surface">Incluye:</p>
+          <p>
+            <span className="font-bold text-on-surface">Comidas completas:</span>{' '}
+            desayuno, refrigerio de la mañana (Morning Tea), almuerzo, merienda de la tarde y cena,
+          </p>
+          <p>
+            <span className="font-bold text-on-surface">Alojamiento:</span>{' '}
+            todas las habitaciones cuentan con servicio completo — sábanas, toallas, manta, almohada,
+            baño privado, cafetera, kettle, mini fridge, café y té.
+          </p>
+          <p>
+            <span className="font-bold text-on-surface">Materiales</span> que se utilizarán durante
+            las sesiones y talleres del retiro.
+          </p>
+          <p>Kit de bienvenida y regalo especial.</p>
+        </div>
+
+        <div className="space-y-2 pt-2 border-t border-primary/10">
+          <p className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-orange-400 shrink-0" />
+            <span>
+              <strong>Pago único de $450 AUD al registrarte.</strong>
+            </span>
+          </p>
+          <p className="ml-5 text-xs">Disponible hasta el 4 de Septiembre de 2026.</p>
+
+          <p className="flex items-start gap-2">
+            <span className="w-3 h-3 rounded-full bg-green-500 shrink-0 mt-0.5" />
+            <span className="italic text-xs">
+              <strong>(Los cupos son limitados.</strong> Tu lugar queda confirmado al recibir tu pago
+              inicial o total. Te recomendamos aprovechar el precio lanzamiento hasta el 1 de agosto
+              2026.)
+            </span>
+          </p>
+        </div>
+
+        <div className="pt-3 border-t border-primary/10 space-y-1.5">
+          <p className="font-bold text-on-surface text-xs uppercase tracking-wider">
+            Detalles Bancarios:
+          </p>
+          <p>
+            <strong>Nombre de la cuenta:</strong> {BANK_DETAILS.accountName}
+          </p>
+          <p>
+            <strong>BSB:</strong> {BANK_DETAILS.bsb}
+          </p>
+          <p>
+            <strong>Número de cuenta:</strong> {BANK_DETAILS.accountNumber}
+          </p>
+        </div>
+
+        <div className="pt-2 border-t border-primary/10 space-y-1.5 text-xs">
+          <p>
+            <strong>Referencia:</strong> al realizar tu transferencia, escribí tu nombre completo y
+            la palabra <strong>"RENUEVA"</strong> en el campo de referencia para identificar tu pago.
+          </p>
+          <p>
+            <strong>Confirmación de pago:</strong> una vez hecha la transferencia, envía tu
+            comprobante por email{' '}
+            <a
+              href="mailto:alegriabewell@gmail.com"
+              className="text-primary underline hover:text-primary/80 transition-colors"
+            >
+              alegriabewell@gmail.com
+            </a>{' '}
+            para completar tu registro.
+          </p>
+        </div>
       </section>
 
       <form onSubmit={handleSubmit} className="space-y-10">
@@ -432,18 +496,57 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
         </div>
 
         {/* Política de cancelación */}
-        <section className="p-6 rounded-2xl border border-outline-variant/40 bg-cream-base/50">
+        <section className="p-6 rounded-2xl border border-outline-variant/40 bg-cream-base/50 space-y-3">
           <div className="flex gap-3">
             <Info className="w-5 h-5 text-terracotta-soft mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="font-sans text-sm font-bold text-terracotta-soft mb-2">
-                Política de Cancelación
+            <div className="space-y-3">
+              <h3 className="font-sans text-sm font-bold text-terracotta-soft">
+                Política de Cancelación:
               </h3>
               <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
-                Los pagos realizados no son reembolsables, salvo situaciones de emergencia evaluadas
-                por el equipo organizador. En esos casos podrá otorgarse un crédito para un próximo
-                retiro de Alegría Retreats. Tu lugar queda reservado únicamente una vez recibido el
-                pago y su comprobante.
+                Debido a los compromisos asumidos con el lugar del retiro y a la planificación
+                anticipada de todos los servicios, los depósitos y pagos realizados no son
+                reembolsables. Sin embargo, si no podés asistir, podrás transferir tu lugar a otra
+                participante, previa coordinación y aprobación de la organización.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                Para asegurar tu lugar en el retiro, se requiere el pago total o la primera cuota al
+                momento de registrarte.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                En el caso de elegir el Precio Anticipado, el pago total deberá completarse antes
+                del 31 de julio de 2026.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                Desde el 1 de agosto de 2026, las inscripciones correspondientes al Precio Regular
+                deberán abonarse en su totalidad al momento de registrarte.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                Agradecemos tu comprensión y tu compromiso, que nos permiten organizar el
+                retiro con responsabilidad y cuidado, y seguir bendiciendo a más mujeres a través
+                de Alegría Retreats.
+              </p>
+
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                <span className="font-bold text-on-surface">Confirmación de Registro:</span>{" "}
+                Una vez que recibamos tu formulario de registro y tu pago, te enviaremos un correo
+                electrónico de confirmación.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                Más cerca de la fecha del retiro recibirás por email todos los detalles logísticos,
+                recomendaciones y materiales necesarios para vivir esta experiencia con tranquilidad.
+              </p>
+              <p className="font-sans text-xs text-on-surface-variant leading-relaxed">
+                <span className="font-bold text-on-surface">¿Dudas o preguntas?</span>{" "}
+                Si necesitás más información, podés contactarnos por WhatsApp al{" "}
+                <a
+                  href="https://wa.me/58422351193"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline hover:text-primary/80 transition-colors"
+                >
+                  0422 351 193
+                </a>.
               </p>
             </div>
           </div>
