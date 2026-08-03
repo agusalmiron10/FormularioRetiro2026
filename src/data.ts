@@ -58,8 +58,6 @@ export const PAYMENT_OPTIONS: {
   { id: 'early-full', label: 'Precio anticipado — Pago completo $450', group: 'anticipado', amount: 450 },
   { id: 'regular-full', label: 'Precio regular — Pago completo $480', group: 'regular', amount: 480 },
   { id: 'volunteer-full', label: 'Voluntaria — Pago completo', group: 'voluntaria', amount: null },
-  { id: 'volunteer-1', label: 'Voluntaria — Primera cuota', group: 'voluntaria', amount: null },
-  { id: 'volunteer-2', label: 'Voluntaria — Segunda cuota', group: 'voluntaria', amount: null },
   { id: 'donation-woman', label: 'Donación para apoyar a otra mujer', group: 'donacion', amount: null },
   { id: 'donation-ministry', label: 'Donación para bendecir el ministerio', group: 'donacion', amount: null }
 ];
