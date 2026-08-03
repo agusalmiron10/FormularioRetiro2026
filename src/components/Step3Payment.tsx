@@ -302,25 +302,30 @@ export default function Step3Payment({ data, onChange, onNext, onBack }: Step3Pr
         >
           <Question title="¿Qué pago estás realizando?" error={errors.paymentOption}>
             <div className="space-y-6">
-              {(['anticipado', 'regular', 'voluntaria', 'donacion'] as const).map((group) => (
-                <div key={group}>
-                  <h3 className="font-sans text-[11px] font-bold text-tertiary uppercase tracking-wider mb-2.5">
-                    {t(GROUP_LABELS[group])}
-                  </h3>
-                  <div className="space-y-3">
-                    {PAYMENT_OPTIONS.filter((o) => o.group === group).map((option) => (
-                      <RadioOption
-                        key={option.id}
-                        name="paymentOption"
-                        value={option.id}
-                        checked={data.paymentOption === option.id}
-                        onSelect={(value) => onChange({ paymentOption: value })}
-                        label={t(option.label)}
-                      />
-                    ))}
+              {(['anticipado', 'regular', 'voluntaria', 'donacion'] as const).map((group) => {
+                const options = PAYMENT_OPTIONS.filter((o) => o.group === group);
+                if (options.length === 0) return null;
+                
+                return (
+                  <div key={group}>
+                    <h3 className="font-sans text-[11px] font-bold text-tertiary uppercase tracking-wider mb-2.5">
+                      {t(GROUP_LABELS[group])}
+                    </h3>
+                    <div className="space-y-3">
+                      {options.map((option) => (
+                        <RadioOption
+                          key={option.id}
+                          name="paymentOption"
+                          value={option.id}
+                          checked={data.paymentOption === option.id}
+                          onSelect={(value) => onChange({ paymentOption: value })}
+                          label={t(option.label)}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Question>
         </div>

@@ -55,7 +55,6 @@ export const PAYMENT_OPTIONS: {
   group: 'anticipado' | 'regular' | 'voluntaria' | 'donacion';
   amount: number | null;
 }[] = [
-  { id: 'early-full', label: 'Precio anticipado — Pago completo $450', group: 'anticipado', amount: 450 },
   { id: 'regular-full', label: 'Precio regular — Pago completo $480', group: 'regular', amount: 480 },
   { id: 'volunteer-full', label: 'Voluntaria — Pago completo', group: 'voluntaria', amount: null },
   { id: 'donation-woman', label: 'Donación para apoyar a otra mujer', group: 'donacion', amount: null },
